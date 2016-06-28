@@ -903,7 +903,7 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function mkdir($uri, $mode, $options) {
     $this->_assert_constructor_called();
-   $this->_debug("mkdir($uri, $mode, $options) called.");
+    $this->_debug("mkdir($uri, $mode, $options) called.");
 
     clearstatcache(TRUE, $uri);
     // If this URI already exists in the cache, return TRUE if it's a folder
@@ -1563,5 +1563,3 @@ class S3fsStream implements StreamWrapperInterface {
     return trim($target, '\/');
   }
 }
-
-

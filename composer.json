@@ -1,10 +1,12 @@
 {
-  "name": "drupal/s3fs",
-  "type": "drupal-module",
-  "description": "Provides functionality for Amazon S3 File Stream",
-  "homepage": "http://drupal.org/project/s3fs",
-  "require": {
-   "aws/aws-sdk-php": "3.3.8"
-  }
-}
+    "repositories": [
+        {
+            "type": "composer",
+            "url":  "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+     "aws/aws-sdk-php": "~3.3.8"
+    }
 
+}
