@@ -106,7 +106,7 @@ function s3fs_install() {
       // MySQL doesn't directly support case sensitive UTF8 collation. Fortunately,
       // 'utf8_bin' collation works for our purposes.
       db_query("ALTER TABLE {s3fs_file} CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
-      db_query("ALTER TABLE {s3fs_file} ADD PRIMARY KEY ({uri})");
+      db_query("ALTER TABLE {s3fs_file} ADD PRIMARY KEY (uri)");
       break;
   }
 
