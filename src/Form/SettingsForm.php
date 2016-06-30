@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\s3fs\Form\SettingsForm.
- */
-
 namespace Drupal\s3fs\Form;
 
 use Drupal\Component\Utility\SafeMarkup;

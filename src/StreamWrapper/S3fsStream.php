@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\StreamWrapper\S3fs.
- */
-
 namespace Drupal\s3fs\StreamWrapper;
 
 use Drupal\Component\Utility\UrlHelper;
