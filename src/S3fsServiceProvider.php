@@ -2,11 +2,10 @@
 
 namespace Drupal\s3fs;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
-use Drupal\Core\DrupalKernel;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The stream wrapper class.
@@ -25,8 +24,9 @@ class S3fsServiceProvider implements ServiceModifierInterface {
   public function alter(ContainerBuilder $container) {
     $cssdefinition = $container->getDefinition('asset.css.dumper');
     $cssdefinition->setClass('Drupal\s3fs\S3fsStreamOverrideManager');
+    $cssdefinition->addArgument(new Reference('config.factory'));
     $jsdefinition = $container->getDefinition('asset.js.dumper');
     $jsdefinition->setClass('Drupal\s3fs\S3fsStreamOverrideManager');
-
+    $jsdefinition->addArgument(new Reference('config.factory'));
   }
 }
