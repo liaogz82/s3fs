@@ -1,11 +1,12 @@
 <?php
 
-use Drupal\Core\Database\Database;
-
 /**
  * @file
  * Install, update and uninstall functions for the S3 File System module.
  */
+
+use Drupal\Core\Database\Database;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_requirements().
@@ -17,6 +18,20 @@ function s3fs_requirements($phase) {
       $requirements['aws_library'] = [
         'description' => t('S3fs require AWS library.'),
         'severity' => REQUIREMENT_ERROR,
+      ];
+    }
+  }
+  if ($phase == 'runtime') {
+    $s3fs_config = \Drupal::config('s3fs.settings');
+    $access_key = $s3fs_config->get('access_key');
+    $secret_key = $s3fs_config->get('secret_key');
+    if (!($access_key && $secret_key)) {
+      $requirements['s3fs'] = [
+        'title' => t('S3 File System'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('S3 File System access key or secret key is not set and it is required for some functionalities to work. Please set it up at the <a href=":settings">S3 File System module settings page</a>.', [
+          ':settings' => Url::fromRoute('s3fs.admin_settings')->toString(),
+        ]),
       ];
     }
   }
