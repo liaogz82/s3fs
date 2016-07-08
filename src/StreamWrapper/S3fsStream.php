@@ -195,7 +195,7 @@ class S3fsStream implements StreamWrapperInterface {
     // Convert the presigned URLs string to an associative array like
     // array(blob => timeout).
     if (!empty($this->config['presigned_urls'])) {
-      foreach (explode("\n", $this->config['presigned_urls']) as $line) {
+      foreach (explode(PHP_EOL, $this->config['presigned_urls']) as $line) {
         $blob = trim($line);
         if ($blob) {
           if (preg_match('/(.*)\|(.*)/', $blob, $matches)) {
@@ -212,7 +212,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     // Convert the forced save-as string to an array.
     if (!empty($this->config['saveas'])) {
-      foreach (explode("\n", $this->config['saveas']) as $line) {
+      foreach (explode(PHP_EOL, $this->config['saveas']) as $line) {
         $blob = trim($line);
         if ($blob) {
           $this->saveas[] = $blob;
@@ -455,6 +455,24 @@ class S3fsStream implements StreamWrapperInterface {
         }
       }
       $external_url = $this->s3->getObjectUrl($this->config['bucket'], $s3_key, $expires, $url_settings['api_args']);
+      if (!empty($this->config['presigned_urls'])) {
+        foreach (explode(PHP_EOL, $this->config['presigned_urls']) as $line) {
+          $blob = trim($line);
+          if ($blob) {
+            $presigned_url_parts = explode("|",$blob);
+            if (preg_match("^$presigned_url_parts[1]^", $s3_key) && $expires) {
+              $command = $this->s3->getCommand('GetObject', [
+                'Bucket' => $this->config['bucket'],
+                'Key'    => $s3_key
+              ]);
+              $external_url = $this->s3->createPresignedRequest($command, $expires);
+              $uri = $external_url->getUri();
+              $external_url= $uri->__toString();
+            }
+          }
+        }
+      }
+
     }
     else {
       // We are using a CNAME, so we need to manually construct the URL.
@@ -644,6 +662,15 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->params;
     $params['Body'] = $this->body;
     $params['ContentType'] = \Drupal::service('file.mime_type.guesser')->guess($params['Key']);
+    if (!empty($this->config['saveas'])) {
+      foreach (explode(PHP_EOL, $this->config['saveas']) as $line) {
+        $blob = trim($line);
+        if ($blob && preg_match("^$blob^", $this->uri)) {
+          $params['ContentType'] = 'application/zip';
+        }
+      }
+    }
+
     if (file_uri_scheme($this->uri) != 'private') {
       // All non-private files uploaded to S3 must be set to public-read, or users' browsers
       // will get PermissionDenied errors, and torrent URLs won't work.
@@ -657,7 +684,6 @@ class S3fsStream implements StreamWrapperInterface {
     if (!empty($this->config['encryption'])) {
       $params['ServerSideEncryption'] = $this->config['encryption'];
     }
-   // dpm($params);
 
     try {
       $this->s3->putObject($params);
