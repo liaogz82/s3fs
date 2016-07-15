@@ -709,7 +709,7 @@ class S3fsStreamWrapper implements DrupalStreamWrapperInterface {
   public function stream_eof() {
     $this->_debug("stream_eof() called for {$this->uri}.");
 
-    return $this->body->feof();
+    return $this->body->eof();
   }
 
   /**
