@@ -7,6 +7,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\Core\Link;
 
 /**
  * Defines a form that configures devel settings.
@@ -33,7 +34,6 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
-    $current_url = Url::createFromRequest($request);
     $config = $this->config('s3fs.settings');
     // I'd like to be able to pull this information directly from the SDK, but
     // I couldn't find a good way to get the human-readable region names.
@@ -112,27 +112,27 @@ class SettingsForm extends ConfigFormBase {
       Use of the USA GovCloud region requires @SPECIAL_PERMISSION.<br>
       Use of the China - Beijing region requires a @CHINESE_AWS_ACCT.',
       array(
-          '@CHINESE_AWS_ACCT' => \Drupal::l('亚马逊 AWS account', Url::fromUri('http://www.amazonaws.cn')),
-          '@SPECIAL_PERMISSION' => \Drupal::l('special permission', Url::fromUri('http://aws.amazon.com/govcloud-us/')),
+          '@CHINESE_AWS_ACCT' => Link::fromTextAndUrl($this->t('亚马逊 AWS account'), Url::fromUri('http://www.amazonaws.cn'))->toString(),
+          '@SPECIAL_PERMISSION' => Link::fromTextAndUrl($this->t('special permission'), Url::fromUri('http://aws.amazon.com/govcloud-us/'))->toString(),
       )
     ),
   );
   $form['advanced'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Advanced Configuration Options'),
+    '#title' => $this->t('Advanced Configuration Options'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
   $advanced = &$form['advanced'];
   $advanced['use_cname'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Enable CNAME'),
+    '#title'         => $this->t('Enable CNAME'),
     '#default_value' => $config->get('use_cname'),
-    '#description'   => t('Serve files from a custom domain by using an appropriately named bucket, e.g. "mybucket.mydomain.com".'),
+    '#description'   => $this->t('Serve files from a custom domain by using an appropriately named bucket, e.g. "mybucket.mydomain.com".'),
   );
   $advanced['cname_settings_fieldset'] = array(
     '#type' => 'fieldset',
-    '#title' => t('CNAME Settings'),
+    '#title' => $this->t('CNAME Settings'),
     '#states' => array(
       'visible' => array(
         ':input[id=edit-use-cname]' => array('checked' => TRUE),
@@ -141,13 +141,13 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['use_customhost'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Use a Custom Host'),
+    '#title'         => $this->t('Use a Custom Host'),
     '#default_value' => $config->get('use_customhost'),
-    '#description'   => t('Connect to an S3-compatible storage service other than Amazon.'),
+    '#description'   => $this->t('Connect to an S3-compatible storage service other than Amazon.'),
   );
   $advanced['customhost_settings_fieldset'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Custom Host Settings'),
+    '#title' => $this->t('Custom Host Settings'),
     '#states' => array(
       'visible' => array(
         ':input[id=edit-use-customhost]' => array('checked' => TRUE),
@@ -156,9 +156,9 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['customhost_settings_fieldset']['hostname'] = array(
     '#type'          => 'textfield',
-    '#title'         => t('Hostname'),
+    '#title'         => $this->t('Hostname'),
     '#default_value' => $config->get('hostname'),
-    '#description'   => t('Custom service hostname, e.g. "objects.dreamhost.com".'),
+    '#description'   => $this->t('Custom service hostname, e.g. "objects.dreamhost.com".'),
     '#states'        => array(
       'visible' => array(
         ':input[id=edit-s3fs-use-customhost]' => array('checked' => TRUE),
@@ -167,38 +167,38 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['cname_settings_fieldset']['domain'] = array(
     '#type'          => 'textfield',
-    '#title'         => t('CDN Domain Name'),
+    '#title'         => $this->t('CDN Domain Name'),
     '#default_value' => $config->get('domain'),
-    '#description'   => t('If serving files from CloudFront, the bucket name can differ from the domain name.'),
+    '#description'   => $this->t('If serving files from CloudFront, the bucket name can differ from the domain name.'),
   );
   $advanced['cache_control_header'] = array(
     '#type'          => 'textfield',
-    '#title'         => t('S3 Object Cache-Control Header'),
+    '#title'         => $this->t('S3 Object Cache-Control Header'),
     '#default_value' => $config->get('cache_control_header'),
-    '#description'   => t('The cache control header to set on all S3 objects for CDNs and browsers, e.g.
+    '#description'   => $this->t('The cache control header to set on all S3 objects for CDNs and browsers, e.g.
       "public, max-age=300".'
     ),
   );
   $advanced['encryption'] = array(
     '#type'          => 'select',
     '#options'       => array('' => 'None', 'AES256' => 'AES256', 'aws:kms' => 'aws:kms'),
-    '#title'         => t('Server-Side Encryption'),
+    '#title'         => $this->t('Server-Side Encryption'),
     '#default_value' => $config->get('encryption'),
-    '#description'   => t(
+    '#description'   => $this->t(
       'If your bucket requires @ENCRYPTION, you can specify the encryption algorithm here',
       array(
-        '@ENCRYPTION' => \Drupal::l('server-side encryption',
+        '@ENCRYPTION' => Link::fromTextAndUrl($this->t('server-side encryption'),
           Url::fromUri('http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html'
-        )),
+        ))->toString(),
       )
     ),
   );
 
   $advanced['use_https'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Always serve files from S3 via HTTPS'),
+    '#title'         => $this->t('Always serve files from S3 via HTTPS'),
     '#default_value' => $config->get('use_https'),
-    '#description'   => t(
+    '#description'   => $this->t(
       'Forces S3 File System to always generate HTTPS URLs for files in your bucket,
       e.g. "https://mybucket.s3.amazonaws.com/smiley.jpg".<br>
       Without this setting enabled, URLs for your files will use the same scheme as the page they are served from.'
@@ -206,9 +206,9 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['ignore_cache'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Ignore the file metadata cache'),
+    '#title'         => $this->t('Ignore the file metadata cache'),
     '#default_value' => $config->get('ignore_cache'),
-    '#description'   => t(
+    '#description'   => $this->t(
       "If you need to debug a problem with S3, you may want to temporarily ignore the file metadata cache.
       This will make all file system reads hit S3 instead of the cache.<br>
       <b>This causes s3fs to work extremely slowly, and should never be enabled on a production site.</b>"
@@ -216,9 +216,9 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['use_s3_for_public'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Use S3 for public:// files'),
+    '#title'         => $this->t('Use S3 for public:// files'),
     '#default_value' => $config->get('use_s3_for_public'),
-    '#description'   => t(
+    '#description'   => $this->t(
       'Enable this option to store all files which would be uploaded to or created in the web server\'s local file system
       within your S3 bucket instead.<br><br>
       <b>PLEASE NOTE:</b> If you intend to use Drupal\'s performance options which aggregate your CSS or Javascript
@@ -229,9 +229,9 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['no_rewrite_cssjs'] = array(
     '#type' => 'checkbox',
-    '#title' => t("Don't rewrite CSS/JS file paths"),
+    '#title' => $this->t("Don't rewrite CSS/JS file paths"),
     '#default_value' => $config->get('no_rewrite_cssjs'),
-    '#description' => t(
+    '#description' => $this->t(
       'If this box is checked, s3fs will NOT rewrite the CSS/JS file paths to "/s3fs-(css|js)/...". Instead, they will
       be placed on the page with their regular CDN name. Only enable this option if you <b>know</b> you need it!'
     ),
@@ -243,18 +243,18 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['use_s3_for_private'] = array(
     '#type'          => 'checkbox',
-    '#title'         => t('Use S3 for private:// files'),
+    '#title'         => $this->t('Use S3 for private:// files'),
     '#default_value' => $config->get('use_s3_for_private'),
-    '#description'   => t(
+    '#description'   => $this->t(
       'Enable this option to store all files which would be uploaded to or created in the private://
       file system (files available only to authneticated users) within your S3 bucket instead.'
     ),
   );
   $advanced['root_folder'] = array(
     '#type'           => 'textfield',
-    '#title'          => t('Root Folder'),
+    '#title'          => $this->t('Root Folder'),
     '#default_value'  =>  $config->get('root_folder'),
-    '#description'   => t(
+    '#description'   => $this->t(
       'S3 File System uses the specified folder as the root of the file system within your bucket (if blank, the bucket
       root is used). This is helpful when your bucket is used by multiple sites, or has additional data in it which
       s3fs should not interfere with.<br>
@@ -266,46 +266,46 @@ class SettingsForm extends ConfigFormBase {
   );
   $advanced['file_specific'] = array(
     '#type' => 'fieldset',
-    '#title' => t('File-specific Settings'),
+    '#title' => $this->t('File-specific Settings'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
   $file_specific = &$advanced['file_specific'];
   $file_specific['presigned_urls'] = array(
     '#type' => 'textarea',
-    '#title' => t('Presigned URLs'),
+    '#title' => $this->t('Presigned URLs'),
     '#default_value' => $config->get('presigned_urls'),
     '#rows' => 5,
-    '#description' => t(
+    '#description' => $this->t(
       'A list of timeouts and paths that should be delivered through a presigned url.<br>
       Enter one value per line, in the format timeout|path. e.g. "60|private_files/*". Paths use regex patterns
       as per @link. If no timeout is provided, it defaults to 60 seconds.<br>
       <b>This feature does not work when "Enable CNAME" is used.</b>',
-      array('@link' => \Drupal::l('preg_match', Url::fromUri('http://php.net/preg_match')))
+      array('@link' => Link::fromTextAndUrl($this->t('preg_match'), Url::fromUri('http://php.net/preg_match'))->toString())
     ),
   );
   $file_specific['saveas'] = array(
     '#type' => 'textarea',
-    '#title' => t('Force Save As'),
+    '#title' => $this->t('Force Save As'),
     '#default_value' => $config->get('saveas'),
     '#rows' => 5,
-    '#description' => t(
+    '#description' => $this->t(
       'A list of paths for which users will be forced to save the file, rather than displaying it in the browser.<br>
       Enter one value per line. e.g. "video/*". Paths use regex patterns as per @link.<br>
       <b>This feature does not work when "Enable CNAME" is used.</b>',
-      array('@link' => \Drupal::l('preg_match', Url::fromUri('http://php.net/preg_match')))
+      array('@link' => Link::fromTextAndUrl($this->t('preg_match'), Url::fromUri('http://php.net/preg_match'))->toString())
     ),
   );
   $file_specific['torrents'] = array(
     '#type' => 'textarea',
-    '#title' => t('Torrents'),
+    '#title' => $this->t('Torrents'),
     '#default_value' => $config->get('torrents'),
     '#rows' => 5,
-    '#description' => t(
+    '#description' => $this->t(
       'A list of paths that should be delivered via BitTorrent.<br>
       Enter one value per line, e.g. "big_files/*". Paths use regex patterns as per @link.<br>
       <b>Private files and paths which are already set as Presigned URLs or Forced Save As cannot be delivered as torrents.</b>',
-      array('@link' => \Drupal::l('preg_match', Url::fromUri('http://php.net/preg_match')))
+      array('@link' => Link::fromTextAndUrl($this->t('preg_match'), Url::fromUri('http://php.net/preg_match'))->toString())
     ),
   );
     return parent::buildForm($form, $form_state);
@@ -340,7 +340,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('torrents', $values['torrents'])
       ->save();
 
-    drupal_set_message(t("Your settings have been saved succesfully"));
+    parent::submitForm($form, $form_state);
   }
 
 

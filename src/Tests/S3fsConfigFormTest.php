@@ -47,7 +47,7 @@ class S3fsConfigFormTest extends WebTestBase {
     $edit['saveas'] = 'video/*';
     $edit['torrents'] = 'big_files/*';
     $this->drupalPostForm('admin/config/media/s3fs', $edit, t('Save configuration'));
-    $this->assertText(t('Your settings have been saved succesfully'), t('Saved configuration'));
+    $this->assertText(t('The configuration options have been saved.'), t('Saved configuration'));
   }
 
 }

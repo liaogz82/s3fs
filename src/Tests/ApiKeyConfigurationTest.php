@@ -60,6 +60,6 @@ class ApiKeyConfigurationTest extends WebTestBase {
     $secret_key = $this->randomString(40);
     $edit = ['access_key' => $access_key, 'secret_key' => $secret_key, 'bucket' => $this->randomString(8)];
     $this->drupalPostForm(Url::fromRoute('s3fs.admin_settings'), $edit, t('Save configuration'));
-    $this->assertText('Your settings have been saved succesfully');
+    $this->assertText(t('The configuration options have been saved.'), t('Saved configuration'));
   }
 }

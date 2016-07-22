@@ -10,9 +10,7 @@ use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\Config\ConfigFactory;
 
 /**
- * Class ValidateService.
- *
- * @package Drupal\s3fs
+ * Defines a ValidateService service.
  */
 class ValidateService {
 
@@ -28,7 +26,7 @@ class ValidateService {
    *
    * @var \Drupal\Core\Config\ConfigFactory
    */
-  protected $config;
+  protected $configFactory;
 
   /**
    * Constructs an ValidateService object.
@@ -36,12 +34,12 @@ class ValidateService {
    * @param \Drupal\Core\Database\Connection $connection
    *   The new database connection object.
    *
-   * @param \Drupal\Core\Config\ConfigFactory $config
+   * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   The config factory object.
    */
-  public function __construct(Connection $connection, ConfigFactory $config) {
+  public function __construct(Connection $connection, ConfigFactory $config_factory) {
     $this->connection = $connection;
-    $this->config = $config;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -122,7 +120,7 @@ class ValidateService {
     // If the client hasn't been set up yet, or the config given to this call is
     // different from the previous call, (re)build the client.
     if (!isset($s3) || $static_config != $config) {
-      $savedConfig = $this->config->get('s3fs.settings')->getRawData();
+      $savedConfig = $this->configFactory->get('s3fs.settings')->getRawData();
       // For the SDK credentials, get the saved settings from _s3fs_get_setting(). But since $config might be populated
       // with to-be-validated settings, its contents (if set) override the saved settings.
       $access_key = $savedConfig['access_key'];
