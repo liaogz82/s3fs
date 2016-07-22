@@ -14,6 +14,7 @@ use GuzzleHttp\Psr7\Stream;
 use Drupal\s3fs\S3fsException;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
+
 /**
  * The stream wrapper class.
  *
@@ -21,6 +22,7 @@ use Drupal\image\Entity\ImageStyle;
  * "s3" or "public", depending on which stream is currently being serviced.
  */
 class S3fsStream implements StreamWrapperInterface {
+
   /** @var StreamInterface Underlying stream resource */
   private $body;
 
@@ -1026,7 +1028,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     // Get the list of uris for files and folders which are children of the
     // specified folder, but not grandchildren.
-    $child_uris = db_select('s3fs_file', 's')
+    $child_uris = \Drupal::database()->select('s3fs_file', 's')
       ->fields('s', array('uri'))
       ->condition('uri', db_like($slash_uri) . '%', 'LIKE')
       ->condition('uri', db_like($slash_uri) . '%/%', 'NOT LIKE')
@@ -1247,7 +1249,7 @@ class S3fsStream implements StreamWrapperInterface {
     }
     //@todo: Cache Implementation
 
-    $record = db_select('s3fs_file', 's')
+    $record = \Drupal::database()->select('s3fs_file', 's')
       ->fields('s')
       ->condition('uri', $uri, '=')
       ->execute()
