@@ -1,12 +1,14 @@
 {
-    "repositories": [
-        {
-            "type": "composer",
-            "url":  "https://packages.drupal.org/8"
-        }
-    ],
+    "name": "drupal/s3fs",
+    "description": "Adds an Amazon Simple Storage Service-based remote file system to Drupal.",
     "require": {
-     "aws/aws-sdk-php": "~3.3.8"
-    }
-
+        "aws/aws-sdk-php": "~3.3.8"
+    },
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Abhishek Anand",
+            "email": "fly2abhishek@gmail.com"
+        }
+    ]
 }
