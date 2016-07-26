@@ -34,6 +34,39 @@ function s3fs_requirements($phase) {
         ]),
       ];
     }
+
+    if (ini_get('allow_url_fopen')) {
+      $requirements['s3fs_allow_url_fopen'] = array(
+        'severity' => REQUIREMENT_OK,
+        'title' => t('allow_url_fopen'),
+        'value' => t('Enabled'),
+      );
+    }
+    else {
+      $requirements['s3fs_allow_url_fopen'] = array(
+        'severity' => REQUIREMENT_ERROR,
+        'title' => t('allow_url_fopen'),
+        'value' => t('Disabled'),
+        'description' => t('The S3 File System module requires that the allow_url_fopen setting be turned on in php.ini.'),
+      );
+    }
+
+    if (PHP_INT_SIZE === 8) {
+      $requirements['s3fs_int64'] = array(
+        'title' => t('PHP architecture'),
+        'value' => t('64-bit'),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+    else {
+      $requirements['s3fs_int64'] = array(
+        'title' => t('PHP architecture'),
+        'value' => t('32-bit'),
+        'description' => t('A 64-bit PHP installation is required in order to support files larger than 2GB.'),
+        'severity' => REQUIREMENT_WARNING,
+      );
+    }
+
   }
 
   return $requirements;
