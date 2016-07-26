@@ -16,10 +16,10 @@ use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
 
 /**
- * The stream wrapper class.
+ * Defines a Drupal s3fs (s3fs://) stream wrapper class.
  *
- * In the docs for this class, anywhere you see "<scheme>", it can mean either
- * "s3" or "public", depending on which stream is currently being serviced.
+ * Provides support for storing files on the amazon s3 file system with the
+ * Drupal file interface.
  */
 class S3fsStream implements StreamWrapperInterface {
 
@@ -45,7 +45,7 @@ class S3fsStream implements StreamWrapperInterface {
   /**
    * The AWS SDK for PHP S3Client object.
    *
-   * @var Aws\S3\S3Client
+   * @var \Aws\S3\S3Client
    */
   protected $s3 = NULL;
 
@@ -113,7 +113,7 @@ class S3fsStream implements StreamWrapperInterface {
   /**
    * S3fsStream constructor.
    *
-   * Creates the Aws\S3\S3Client client object and activates the options
+   * Creates the \Aws\S3\S3Client client object and activates the options
    * specified on the S3 File System Settings page.
    */
   public function __construct() {
@@ -134,7 +134,7 @@ class S3fsStream implements StreamWrapperInterface {
     }
     $config = \Drupal::config('s3fs.settings');
     $this->getClient();
-    foreach($config->get() as $prop => $value) {
+    foreach ($config->get() as $prop => $value) {
       $this->config[$prop] = $value;
     }
 
@@ -237,16 +237,16 @@ class S3fsStream implements StreamWrapperInterface {
   //
   protected function getClient() {
     $config = \Drupal::config('s3fs.settings');
-    if(!empty($config)) {
+    if (!empty($config)) {
       $client = S3Client::factory(array(
         'credentials' => array(
-          'key'    => $config->get('access_key'),
+          'key' => $config->get('access_key'),
           'secret' => $config->get('secret_key'),
         ),
-        'region'  => $config->get('region'),
+        'region' => $config->get('region'),
         'version' => 'latest'
-    ));
-    $this->s3 = $client;
+      ));
+      $this->s3 = $client;
     }
   }
 
@@ -257,19 +257,20 @@ class S3fsStream implements StreamWrapperInterface {
     return StreamWrapperInterface::NORMAL;
   }
 
-    /**
+  /**
    * {@inheritdoc}
    */
   public function getName() {
-    return t('Amazon S3 files');
+    return t('S3 File System');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Files served by the Amazon S3 Server.');
+    return t('Amazon Simple Storage Service.');
   }
+
   /**
    * Gets the path that the wrapper is responsible for.
    *
@@ -297,6 +298,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     $this->uri = $uri;
   }
+
   /**
    * Returns the stream resource URI, which looks like "<scheme>://filepath".
    *
@@ -304,7 +306,7 @@ class S3fsStream implements StreamWrapperInterface {
    *   The current URI of the instance.
    */
   public function getUri() {
-   $this->_debug("getUri() called for {$this->uri}.");
+    $this->_debug("getUri() called for {$this->uri}.");
 
     return $this->uri;
   }
@@ -320,6 +322,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     return FALSE;
   }
+
   public function moveUploadedFile($filename, $uri) {
     $this->_debug("moveUploadedFile() called for {$this->uri}. S3fsStream does not support this function.");
     return FALSE;
@@ -355,7 +358,7 @@ class S3fsStream implements StreamWrapperInterface {
       // Convert backslashes from windows filenames to forward slashes.
       $path = str_replace('\\', '/', $uri);
       $relative_url = Url::fromUserInput("/system/files/$path");
-      return  \Drupal::l($relative_url, $relative_url);
+      return \Drupal::l($relative_url, $relative_url);
       //return url("system/files/$path", array('absolute' => TRUE));
     }
 
@@ -390,10 +393,12 @@ class S3fsStream implements StreamWrapperInterface {
           // their S3 bucket's s3fs-public/ folder.
           return "{$GLOBALS['base_url']}/s3fs-css/" . UrlHelper::encodePath($uri);
         }
-        else if (substr($uri, -3) == '.js') {
-          // Send requests for public JS files to /s3fs-js/path/to/file.js.
-          // Like with CSS, the user must set up that path as a proxy.
-          return "{$GLOBALS['base_url']}/s3fs-js/" . UrlHelper::encodePath($uri);
+        else {
+          if (substr($uri, -3) == '.js') {
+            // Send requests for public JS files to /s3fs-js/path/to/file.js.
+            // Like with CSS, the user must set up that path as a proxy.
+            return "{$GLOBALS['base_url']}/s3fs-js/" . UrlHelper::encodePath($uri);
+          }
         }
       }
 
@@ -461,15 +466,15 @@ class S3fsStream implements StreamWrapperInterface {
         foreach (explode(PHP_EOL, $this->config['presigned_urls']) as $line) {
           $blob = trim($line);
           if ($blob) {
-            $presigned_url_parts = explode("|",$blob);
+            $presigned_url_parts = explode("|", $blob);
             if (preg_match("^$presigned_url_parts[1]^", $s3_key) && $expires) {
               $command = $this->s3->getCommand('GetObject', [
                 'Bucket' => $this->config['bucket'],
-                'Key'    => $s3_key
+                'Key' => $s3_key
               ]);
               $external_url = $this->s3->createPresignedRequest($command, $expires);
               $uri = $external_url->getUri();
-              $external_url= $uri->__toString();
+              $external_url = $uri->__toString();
             }
           }
         }
@@ -529,7 +534,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-open.php
    */
   public function stream_open($uri, $mode, $options, &$opened_path) {
-   $this->_debug("stream_open($uri, $mode, $options, $opened_path) called.");
+    $this->_debug("stream_open($uri, $mode, $options, $opened_path) called.");
 
     $this->uri = $uri;
     // We don't care about the binary flag, so strip it out.
@@ -552,11 +557,13 @@ class S3fsStream implements StreamWrapperInterface {
       if ($mode == 'r') {
         $this->_open_read_stream($this->params, $errors);
       }
-      else if ($mode == 'a') {
-        $this->_open_append_stream($this->params, $errors);
-      }
       else {
-        $this->_open_write_stream($this->params, $errors);
+        if ($mode == 'a') {
+          $this->_open_append_stream($this->params, $errors);
+        }
+        else {
+          $this->_open_write_stream($this->params, $errors);
+        }
       }
     }
 
@@ -607,7 +614,7 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function stream_write($data) {
     $bytes = strlen($data);
-   $this->_debug("stream_write() called with $bytes bytes of data for {$this->uri}.");
+    $this->_debug("stream_write() called with $bytes bytes of data for {$this->uri}.");
 
     return $this->body->write($data);
   }
@@ -644,7 +651,7 @@ class S3fsStream implements StreamWrapperInterface {
     return $this->body->seek($offset, $whence);
   }
 
-/**
+  /**
    * Support for fflush(). Flush current cached stream data to a file in S3.
    *
    * @return bool
@@ -663,7 +670,8 @@ class S3fsStream implements StreamWrapperInterface {
 
     $params = $this->params;
     $params['Body'] = $this->body;
-    $params['ContentType'] = \Drupal::service('file.mime_type.guesser')->guess($params['Key']);
+    $params['ContentType'] = \Drupal::service('file.mime_type.guesser')
+      ->guess($params['Key']);
     if (!empty($this->config['saveas'])) {
       foreach (explode(PHP_EOL, $this->config['saveas']) as $line) {
         $blob = trim($line);
@@ -690,8 +698,7 @@ class S3fsStream implements StreamWrapperInterface {
     try {
       $this->s3->putObject($params);
       $this->writeUriToCache($this->uri);
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
@@ -707,7 +714,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-tell.php
    */
   public function stream_tell() {
-   $this->_debug("stream_tell() called.");
+    $this->_debug("stream_tell() called.");
 
     return $this->body->ftell();
   }
@@ -722,7 +729,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-stat.php
    */
   public function stream_stat() {
-   $this->_debug("stream_stat() called for {$this->uri}.");
+    $this->_debug("stream_stat() called for {$this->uri}.");
     $stat = fstat($this->body->getStream());
     // Add the size of the underlying stream if it is known.
     if ($this->access_mode == 'r' && $this->body->getSize()) {
@@ -818,9 +825,8 @@ class S3fsStream implements StreamWrapperInterface {
       $this->s3->deleteObject($this->_get_params($uri));
       $this->_delete_cache($uri);
       clearstatcache(TRUE, $uri);
-    }
-    catch (\Exception $e) {
-     $this->_debug($e->getMessage());
+    } catch (\Exception $e) {
+      $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
     return TRUE;
@@ -844,7 +850,7 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function rename($from_uri, $to_uri) {
     $this->_assert_constructor_called();
-   $this->_debug("rename($from_uri, $to_uri) called.");
+    $this->_debug("rename($from_uri, $to_uri) called.");
 
     $from_params = $this->_get_params($from_uri);
     $to_params = $this->_get_params($to_uri);
@@ -868,14 +874,13 @@ class S3fsStream implements StreamWrapperInterface {
       $this->waitUntilFileExists($to_uri);
       // Now that we know the new object is there, delete the old one.
       return $this->unlink($from_uri);
-    }
-    catch (\Exception $e) {
-     $this->_debug($e->getMessage());
+    } catch (\Exception $e) {
+      $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
   }
 
-   /**
+  /**
    * Gets the name of the parent directory of a given path.
    *
    * This method is usually accessed through drupal_dirname(), which wraps
@@ -891,7 +896,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @see drupal_dirname()
    */
   public function dirname($uri = NULL) {
- //   $this->_debug("dirname($uri) called.");
+    //   $this->_debug("dirname($uri) called.");
 
     if (!isset($uri)) {
       $uri = $this->uri;
@@ -964,14 +969,14 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function rmdir($uri, $options) {
     $this->_assert_constructor_called();
-  //  $this->_debug("rmdir($uri, $options) called.");
+    //  $this->_debug("rmdir($uri, $options) called.");
 
     if (!$this->_uri_is_dir($uri)) {
       return FALSE;
     }
   }
 
-   /**
+  /**
    * Support for stat().
    *
    * @param string $uri
@@ -987,13 +992,13 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function url_stat($uri, $flags) {
 
-  $this->_assert_constructor_called();
-  $this->_debug("url_stat($uri, $flags) called.");
+    $this->_assert_constructor_called();
+    $this->_debug("url_stat($uri, $flags) called.");
 
     return $this->_stat($uri);
   }
 
-/**
+  /**
    * Support for opendir().
    *
    * @param string $uri
@@ -1042,7 +1047,7 @@ class S3fsStream implements StreamWrapperInterface {
     return TRUE;
   }
 
-    /**
+  /**
    * Support for readdir().
    *
    * @return string
@@ -1066,7 +1071,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.dir-rewinddir.php
    */
   public function dir_rewinddir() {
-   $this->_debug("dir_rewinddir() called.");
+    $this->_debug("dir_rewinddir() called.");
 
     reset($this->dir);
     return TRUE;
@@ -1081,14 +1086,14 @@ class S3fsStream implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.dir-closedir.php
    */
   public function dir_closedir() {
-   $this->_debug("dir_closedir() called.");
+    $this->_debug("dir_closedir() called.");
 
     unset($this->dir);
     return TRUE;
   }
-    /***************************************************************************
-              Public Functions for External Use of the Wrapper
-  ***************************************************************************/
+  /***************************************************************************
+   * Public Functions for External Use of the Wrapper
+   ***************************************************************************/
 
   /**
    * Wait for the specified file to exist in the bucket.
@@ -1104,8 +1109,7 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->_get_params($uri);
     try {
       $this->s3->waitUntil('ObjectExists', $params);
-    }
-    catch (Aws\Common\Exception\RuntimeException $e) {
+    } catch (Aws\Common\Exception\RuntimeException $e) {
       return FALSE;
     }
     return TRUE;
@@ -1126,8 +1130,8 @@ class S3fsStream implements StreamWrapperInterface {
     clearstatcache(TRUE, $uri);
   }
   /***************************************************************************
-                              Internal Functions
-  ***************************************************************************/
+   * Internal Functions
+   ***************************************************************************/
 
   /**
    * Get the status of the file with the specified URI.
@@ -1143,27 +1147,27 @@ class S3fsStream implements StreamWrapperInterface {
     $metadata = $this->_s3fs_get_object($uri);
     if ($metadata) {
       $stat = array();
-      $stat[0]  = $stat['dev'] = 0;
-      $stat[1]  = $stat['ino'] = 0;
+      $stat[0] = $stat['dev'] = 0;
+      $stat[1] = $stat['ino'] = 0;
       // Use the S_IFDIR posix flag for directories, S_IFREG for files.
       // All files are considered writable, so OR in 0777.
-      $stat[2]  = $stat['mode'] = ($metadata['dir'] ? 0040000 : 0100000) | 0777;
-      $stat[3]  = $stat['nlink'] = 0;
-      $stat[4]  = $stat['uid'] = 0;
-      $stat[5]  = $stat['gid'] = 0;
-      $stat[6]  = $stat['rdev'] = 0;
-      $stat[7]  = $stat['size'] = 0;
-      $stat[8]  = $stat['atime'] = 0;
-      $stat[9]  = $stat['mtime'] = 0;
+      $stat[2] = $stat['mode'] = ($metadata['dir'] ? 0040000 : 0100000) | 0777;
+      $stat[3] = $stat['nlink'] = 0;
+      $stat[4] = $stat['uid'] = 0;
+      $stat[5] = $stat['gid'] = 0;
+      $stat[6] = $stat['rdev'] = 0;
+      $stat[7] = $stat['size'] = 0;
+      $stat[8] = $stat['atime'] = 0;
+      $stat[9] = $stat['mtime'] = 0;
       $stat[10] = $stat['ctime'] = 0;
       $stat[11] = $stat['blksize'] = 0;
       $stat[12] = $stat['blocks'] = 0;
 
       if (!$metadata['dir']) {
-        $stat[4]  = $stat['uid'] = 's3fs';
-        $stat[7]  = $stat['size'] = $metadata['filesize'];
-        $stat[8]  = $stat['atime'] = $metadata['timestamp'];
-        $stat[9]  = $stat['mtime'] = $metadata['timestamp'];
+        $stat[4] = $stat['uid'] = 's3fs';
+        $stat[7] = $stat['size'] = $metadata['filesize'];
+        $stat[8] = $stat['atime'] = $metadata['timestamp'];
+        $stat[9] = $stat['mtime'] = $metadata['timestamp'];
         $stat[10] = $stat['ctime'] = $metadata['timestamp'];
       }
       return $stat;
@@ -1216,8 +1220,7 @@ class S3fsStream implements StreamWrapperInterface {
       try {
         // If _get_metadata_from_s3() returns FALSE, the file doesn't exist.
         $metadata = $this->_get_metadata_from_s3($uri);
-      }
-      catch (\Exception $e) {
+      } catch (\Exception $e) {
         $this->_debug($e->getMessage());
         return $this->_trigger_error($e->getMessage());
       }
@@ -1244,8 +1247,10 @@ class S3fsStream implements StreamWrapperInterface {
     if (strpos($uri, 'public:///') === 0) {
       $uri = preg_replace('^public://[/]+^', 'public://', $uri);
     }
-    else if (strpos($uri, 'private:///') === 0) {
-      $uri = preg_replace('^private://[/]+^', 'private://', $uri);
+    else {
+      if (strpos($uri, 'private:///') === 0) {
+        $uri = preg_replace('^private://[/]+^', 'private://', $uri);
+      }
     }
     //@todo: Cache Implementation
 
@@ -1382,8 +1387,10 @@ class S3fsStream implements StreamWrapperInterface {
       $params['Key'] = "s3fs-public/{$params['Key']}";
     }
     // private:// file are all placed in the s3fs-private/ folder.
-    else if (file_uri_scheme($uri) == 'private') {
-      $params['Key'] = "s3fs-private/{$params['Key']}";
+    else {
+      if (file_uri_scheme($uri) == 'private') {
+        $params['Key'] = "s3fs-private/{$params['Key']}";
+      }
     }
 
     // If it's set, all files are placed in the root folder.
@@ -1405,15 +1412,15 @@ class S3fsStream implements StreamWrapperInterface {
     $this->_debug("_open_read_stream({$params['Key']}) called.", TRUE);
     $client = $this->s3;
     $command = $client->getCommand('GetObject', $params);
-    $command['@http']['stream'] = true;
+    $command['@http']['stream'] = TRUE;
     $result = $client->execute($command);
     $this->size = $result['ContentLength'];
     $this->body = $result['Body'];
     // Wrap the body in a caching entity body if seeking is allowed
     //if ($params('seekable') && !$this->body->isSeekable()) {
-      $this->body = new CachingStream($this->body);
-   // }
-    return true;
+    $this->body = new CachingStream($this->body);
+    // }
+    return TRUE;
   }
 
   /**
@@ -1431,8 +1438,7 @@ class S3fsStream implements StreamWrapperInterface {
       // Get the body of the object
       $this->body = $this->s3->getObject($params)->get('Body');
       $this->body->seek(0, SEEK_END);
-    }
-    catch (Aws\S3\Exception\S3Exception $e) {
+    } catch (Aws\S3\Exception\S3Exception $e) {
       // The object does not exist, so use a simple write stream.
       $this->_open_write_stream($params, $errors);
     }
@@ -1449,7 +1455,7 @@ class S3fsStream implements StreamWrapperInterface {
   protected function _open_write_stream($params, &$errors) {
     $this->_debug("_open_write_stream({$params['Key']}) called.", TRUE);
     $this->body = new Stream(fopen('php://temp', 'r+'));
-    return true;
+    return TRUE;
 
   }
 
@@ -1487,8 +1493,7 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->_get_params($uri);
     try {
       $result = $this->s3->headObject($params);
-    }
-    catch (Aws\S3\Exception\NoSuchKeyException $e) {
+    } catch (Aws\S3\Exception\NoSuchKeyException $e) {
       // headObject() throws this exception if the requested key doesn't exist
       // in the bucket.
       return FALSE;
@@ -1574,7 +1579,8 @@ class S3fsStream implements StreamWrapperInterface {
     }
     return $new_url;
   }
-    protected function getTarget($uri = NULL) {
+
+  protected function getTarget($uri = NULL) {
     if (!isset($uri)) {
       $uri = $this->uri;
     }
