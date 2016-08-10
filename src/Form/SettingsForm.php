@@ -45,6 +45,7 @@ class SettingsForm extends ConfigFormBase {
       'us-gov-west-1' => 'USA GovCloud Standard (us-gov-west-1)',
       'eu-west-1' => 'EU - Ireland  (eu-west-1)',
       'eu-central-1' => 'EU - Frankfurt (eu-central-1)',
+      'ap-south-1' => 'Asia Pacific - Mumbai',
       'ap-southeast-1' => 'Asia Pacific - Singapore (ap-southeast-1)',
       'ap-southeast-2' => 'Asia Pacific - Sydney (ap-southeast-2)',
       'ap-northeast-1' => 'Asia Pacific - Tokyo (ap-northeast-1)',
