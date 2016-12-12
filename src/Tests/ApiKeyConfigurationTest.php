@@ -32,7 +32,10 @@ class ApiKeyConfigurationTest extends WebTestBase {
     parent::setUp();
 
     // Creates administrative user.
-    $this->adminUser = $this->drupalCreateUser(['administer s3fs','administer site configuration']);
+    $this->adminUser = $this->drupalCreateUser([
+      'administer s3fs',
+      'administer site configuration',
+    ]);
     $this->drupalLogin($this->adminUser);
   }
 
@@ -58,7 +61,11 @@ class ApiKeyConfigurationTest extends WebTestBase {
     $this->assertResponse(200);
     $access_key = $this->randomString(40);
     $secret_key = $this->randomString(40);
-    $edit = ['access_key' => $access_key, 'secret_key' => $secret_key, 'bucket' => $this->randomString(8)];
+    $edit = [
+      'access_key' => $access_key,
+      'secret_key' => $secret_key,
+      'bucket' => $this->randomString(8),
+    ];
     $this->drupalPostForm(Url::fromRoute('s3fs.admin_settings'), $edit, t('Save configuration'));
     $this->assertText(t('The configuration options have been saved.'), t('Saved configuration'));
   }

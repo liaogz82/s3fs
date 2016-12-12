@@ -2,12 +2,12 @@
 
 namespace Drupal\s3fs;
 
-use Drupal\Core\Database\Connection;
-use Aws\S3\S3Client;
 use Aws\S3\Exception\S3Exception;
-use Drupal\Core\StreamWrapper\PublicStream;
-use Drupal\Core\StreamWrapper\PrivateStream;
+use Aws\S3\S3Client;
 use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\StreamWrapper\PrivateStream;
+use Drupal\Core\StreamWrapper\PublicStream;
 
 /**
  * Defines a ValidateService service.
@@ -72,8 +72,7 @@ class ValidateService {
 
     try {
       $s3 = $this->getAmazonS3Client($config);
-    }
-    catch (S3Exception $e) {
+    } catch (S3Exception $e) {
       if ($returnError) {
         $name = 'form';
         $msg = $e->getMessage();
@@ -87,8 +86,7 @@ class ValidateService {
       // listObjects() will trigger descriptive exceptions if the credentials,
       // bucket name, or region are invalid/mismatched.
       $s3->listObjects(['Bucket' => $config['bucket'], 'MaxKeys' => 1]);
-    }
-    catch (S3Exception $e) {
+    } catch (S3Exception $e) {
       if ($returnError) {
         $name = 'form';
         $msg = t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
@@ -240,7 +238,7 @@ class ValidateService {
    *   Array of file paths.
    */
   function dirScan($dir) {
-    $output = array();
+    $output = [];
     $files = scandir($dir);
     foreach ($files as $file) {
       $path = "$dir/$file";

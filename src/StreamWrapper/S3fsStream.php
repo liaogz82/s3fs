@@ -2,16 +2,16 @@
 
 namespace Drupal\s3fs\StreamWrapper;
 
+use Aws\S3\S3Client;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Link;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Aws\S3\S3Client;
-use GuzzleHttp\Psr7\CachingStream;
-use GuzzleHttp\Psr7\Stream;
-use Drupal\s3fs\S3fsException;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\s3fs\S3fsException;
+use GuzzleHttp\Psr7\CachingStream;
+use GuzzleHttp\Psr7\Stream;
 
 /**
  * Defines a Drupal s3fs (s3fs://) stream wrapper class.
@@ -72,21 +72,21 @@ class S3fsStream implements StreamWrapperInterface {
    *
    * @var array
    */
-  protected $torrents = array();
+  protected $torrents = [];
 
   /**
    * Files that the user has said must be downloaded, rather than viewed.
    *
    * @var array
    */
-  protected $saveas = array();
+  protected $saveas = [];
 
   /**
    * Files which should be created with URLs that eventually time out.
    *
    * @var array
    */
-  protected $presignedURLs = array();
+  protected $presignedURLs = [];
 
   /**
    * The constructor sets this to TRUE once it's finished.
@@ -145,9 +145,9 @@ class S3fsStream implements StreamWrapperInterface {
     if (empty($this->config['bucket'])) {
       $link = Link::fromTextAndUrl($this->t('configuration page'), Url::fromRoute('s3fs.admin_settings'));
       \Drupal::logger('S3 File System')
-        ->error('Your AmazonS3 bucket name is not configured. Please visit the @config_page.', array(
+        ->error('Your AmazonS3 bucket name is not configured. Please visit the @config_page.', [
           '@sconfig_page' => $link->toString(),
-        ));
+        ]);
       throw new \Exception('Your AmazonS3 bucket name is not configured. Please visit the configuration page.');
     }
 
@@ -244,14 +244,14 @@ class S3fsStream implements StreamWrapperInterface {
   protected function getClient() {
     $config = \Drupal::config('s3fs.settings');
     if (!empty($config)) {
-      $client = S3Client::factory(array(
-        'credentials' => array(
+      $client = S3Client::factory([
+        'credentials' => [
           'key' => $config->get('access_key'),
           'secret' => $config->get('secret_key'),
-        ),
+        ],
         'region' => $config->get('region'),
-        'version' => 'latest'
-      ));
+        'version' => 'latest',
+      ]);
       $this->s3 = $client;
     }
   }
@@ -410,14 +410,14 @@ class S3fsStream implements StreamWrapperInterface {
     }
 
     // Set up the URL settings as speciied in our settings page.
-    $url_settings = array(
+    $url_settings = [
       'torrent' => FALSE,
       'presigned_url' => FALSE,
       'timeout' => 60,
       'forced_saveas' => FALSE,
-      'api_args' => array('Scheme' => !empty($this->config['use_https']) ? 'https' : 'http'),
-      'custom_GET_args' => array(),
-    );
+      'api_args' => ['Scheme' => !empty($this->config['use_https']) ? 'https' : 'http'],
+      'custom_GET_args' => [],
+    ];
 
     // Presigned URLs.
     foreach ($this->presignedURLs as $blob => $timeout) {
@@ -473,7 +473,7 @@ class S3fsStream implements StreamWrapperInterface {
             if (preg_match("^$presigned_url_parts[1]^", $s3_key) && $expires) {
               $command = $this->s3->getCommand('GetObject', [
                 'Bucket' => $this->config['bucket'],
-                'Key' => $s3_key
+                'Key' => $s3_key,
               ]);
               $external_url = $this->s3->createPresignedRequest($command, $expires);
               $uri = $external_url->getUri();
@@ -543,17 +543,17 @@ class S3fsStream implements StreamWrapperInterface {
     // We don't care about the binary flag, so strip it out.
     $this->access_mode = $mode = rtrim($mode, 'bt');
     $this->params = $this->_get_params($uri);
-    $errors = array();
+    $errors = [];
 
     if (strpos($mode, '+')) {
       $errors[] = $this->t('The S3 File System stream wrapper does not allow simultaneous reading and writing.');
     }
-    if (!in_array($mode, array('r', 'w', 'a', 'x'))) {
-      $errors[] = $this->t("Mode not supported: %mode. Use one 'r', 'w', 'a', or 'x'.", array('%mode' => $mode));
+    if (!in_array($mode, ['r', 'w', 'a', 'x'])) {
+      $errors[] = $this->t("Mode not supported: %mode. Use one 'r', 'w', 'a', or 'x'.", ['%mode' => $mode]);
     }
     // When using mode "x", validate if the file exists first.
     if ($mode == 'x' && $this->_read_cache($uri)) {
-      $errors[] = $this->t("%uri already exists in your S3 bucket, so it cannot be opened with mode 'x'.", array('%uri' => $uri));
+      $errors[] = $this->t("%uri already exists in your S3 bucket, so it cannot be opened with mode 'x'.", ['%uri' => $uri]);
     }
 
     if (!$errors) {
@@ -944,7 +944,7 @@ class S3fsStream implements StreamWrapperInterface {
       return (bool) $test_metadata['dir'];
     }
 
-    $metadata = _s3fs_convert_metadata($uri, array());
+    $metadata = _s3fs_convert_metadata($uri, []);
     $this->_write_cache($metadata);
 
     // If the STREAM_MKDIR_RECURSIVE option was specified, also create all the
@@ -1037,13 +1037,13 @@ class S3fsStream implements StreamWrapperInterface {
     // Get the list of uris for files and folders which are children of the
     // specified folder, but not grandchildren.
     $child_uris = \Drupal::database()->select('s3fs_file', 's')
-      ->fields('s', array('uri'))
+      ->fields('s', ['uri'])
       ->condition('uri', db_like($slash_uri) . '%', 'LIKE')
       ->condition('uri', db_like($slash_uri) . '%/%', 'NOT LIKE')
       ->execute()
       ->fetchCol(0);
 
-    $this->dir = array();
+    $this->dir = [];
     foreach ($child_uris as $child_uri) {
       $this->dir[] = basename($child_uri);
     }
@@ -1126,7 +1126,7 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function writeUriToCache($uri) {
     if (!$this->waitUntilFileExists($uri)) {
-      throw new S3fsException($this->t('The file at URI %file does not exist in S3.', array('%file' => $uri)));
+      throw new S3fsException($this->t('The file at URI %file does not exist in S3.', ['%file' => $uri]));
     }
     $metadata = $this->_get_metadata_from_s3($uri);
     $this->_write_cache($metadata);
@@ -1149,7 +1149,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     $metadata = $this->_s3fs_get_object($uri);
     if ($metadata) {
-      $stat = array();
+      $stat = [];
       $stat[0] = $stat['dev'] = 0;
       $stat[1] = $stat['ino'] = 0;
       // Use the S_IFDIR posix flag for directories, S_IFREG for files.
@@ -1208,7 +1208,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     // For the root directory, return metadata for a generic folder.
     if (file_uri_target($uri) == '') {
-      return _s3fs_convert_metadata('/', array());
+      return _s3fs_convert_metadata('/', []);
     }
 
     // Trim any trailing '/', in case this is a folder request.
@@ -1294,7 +1294,7 @@ class S3fsStream implements StreamWrapperInterface {
     }*/
 
     db_merge('s3fs_file')
-      ->key(array('uri' => $metadata['uri']))
+      ->key(['uri' => $metadata['uri']])
       ->fields($metadata)
       ->execute();
 
@@ -1326,7 +1326,7 @@ class S3fsStream implements StreamWrapperInterface {
     $this->_debug("_delete_cache($uri) called.", TRUE);
 
     if (!is_array($uri)) {
-      $uri = array($uri);
+      $uri = [$uri];
     }
 
     // Build an OR query to delete all the URIs at once.
@@ -1351,7 +1351,7 @@ class S3fsStream implements StreamWrapperInterface {
   protected function _get_options() {
     $context = isset($this->context) ? $this->context : stream_context_get_default();
     $options = stream_context_get_options($context);
-    return isset($options['s3']) ? $options['s3'] : array();
+    return isset($options['s3']) ? $options['s3'] : [];
   }
 
   /**
@@ -1474,7 +1474,7 @@ class S3fsStream implements StreamWrapperInterface {
     $this->_debug("_get_signed_request() called.", TRUE);
 
     $request = $command->prepare();
-    $request->dispatch('request.before_send', array('request' => $request));
+    $request->dispatch('request.before_send', ['request' => $request]);
     return $request;
   }
 

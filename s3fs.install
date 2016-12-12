@@ -36,35 +36,35 @@ function s3fs_requirements($phase) {
     }
 
     if (ini_get('allow_url_fopen')) {
-      $requirements['s3fs_allow_url_fopen'] = array(
+      $requirements['s3fs_allow_url_fopen'] = [
         'severity' => REQUIREMENT_OK,
         'title' => t('allow_url_fopen'),
         'value' => t('Enabled'),
-      );
+      ];
     }
     else {
-      $requirements['s3fs_allow_url_fopen'] = array(
+      $requirements['s3fs_allow_url_fopen'] = [
         'severity' => REQUIREMENT_ERROR,
         'title' => t('allow_url_fopen'),
         'value' => t('Disabled'),
         'description' => t('The S3 File System module requires that the allow_url_fopen setting be turned on in php.ini.'),
-      );
+      ];
     }
 
     if (PHP_INT_SIZE === 8) {
-      $requirements['s3fs_int64'] = array(
+      $requirements['s3fs_int64'] = [
         'title' => t('PHP architecture'),
         'value' => t('64-bit'),
         'severity' => REQUIREMENT_OK,
-      );
+      ];
     }
     else {
-      $requirements['s3fs_int64'] = array(
+      $requirements['s3fs_int64'] = [
         'title' => t('PHP architecture'),
         'value' => t('32-bit'),
         'description' => t('A 64-bit PHP installation is required in order to support files larger than 2GB.'),
         'severity' => REQUIREMENT_WARNING,
-      );
+      ];
     }
 
   }
@@ -77,55 +77,55 @@ function s3fs_requirements($phase) {
  * Implements hook_schema().
  */
 function s3fs_schema() {
-  $schema = array();
-  $schema['s3fs_file'] = array(
+  $schema = [];
+  $schema['s3fs_file'] = [
     'description' => 'Stores metadata about files in S3.',
-    'fields' => array(
-      'uri' => array(
+    'fields' => [
+      'uri' => [
         'description' => 'The S3 URI of the file.',
         'type' => 'varchar',
-       'length' => 255,
+        'length' => 255,
         'not null' => TRUE,
         'default' => '',
-      ),
-      'filesize' => array(
+      ],
+      'filesize' => [
         'description' => 'The size of the file in bytes.',
         'type' => 'int',
         'size' => 'big',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
-      ),
-      'timestamp' => array(
+      ],
+      'timestamp' => [
         'description' => 'UNIX timestamp for when the file was added.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
-      ),
-      'dir' => array(
+      ],
+      'dir' => [
         'description' => 'Boolean indicating whether or not this object is a directory.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-      ),
-      'version' => array(
+      ],
+      'version' => [
         'description' => 'The S3 VersionId of the object.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => FALSE,
         'default' => '',
-      ),
-    ),
-    'indexes' => array(
-      'timestamp' => array('timestamp'),
-    ),
+      ],
+    ],
+    'indexes' => [
+      'timestamp' => ['timestamp'],
+    ],
     //'primary key' => array('uri'),
     // As mentioned on http://drupal.org/node/2193059, a bug in Drupal core's
     // MySQL driver prevents this setting from actually being applied. So we
     // manually fix that in hook_install().
     'collation' => 'utf8_bin',
-  );
+  ];
   return $schema;
 }
 
