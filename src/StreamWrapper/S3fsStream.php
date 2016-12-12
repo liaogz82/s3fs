@@ -3,12 +3,10 @@
 namespace Drupal\s3fs\StreamWrapper;
 
 use Drupal\Component\Utility\UrlHelper;
-use Drupal\Core\DrupalKernel;
-use Drupal\Core\Site\Settings;
+use Drupal\Core\Link;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Aws\S3\S3Client;
-use Aws\S3\Exception;
 use GuzzleHttp\Psr7\CachingStream;
 use GuzzleHttp\Psr7\Stream;
 use Drupal\s3fs\S3fsException;
@@ -23,7 +21,13 @@ use Drupal\image\Entity\ImageStyle;
  */
 class S3fsStream implements StreamWrapperInterface {
 
-  /** @var StreamInterface Underlying stream resource */
+  use StringTranslationTrait;
+
+  /**
+   * Underlying stream resource.
+   *
+   * @var \Drupal\Core\StreamWrapper\StreamWrapperInterface
+   */
   private $body;
 
   /**
@@ -139,10 +143,12 @@ class S3fsStream implements StreamWrapperInterface {
     }
 
     if (empty($this->config['bucket'])) {
-      $msg = t('Your AmazonS3 bucket name is not configured. Please visit the @settings_page.',
-        array('@settings_page' => l(t('configuration page'), '/admin/config/media/s3fs/settings')));
-      watchdog('S3 File System', $msg, array(), WATCHDOG_ERROR);
-      throw new Exception($msg);
+      $link = Link::fromTextAndUrl($this->t('configuration page'), Url::fromRoute('s3fs.admin_settings'));
+      \Drupal::logger('S3 File System')
+        ->error('Your AmazonS3 bucket name is not configured. Please visit the @config_page.', array(
+          '@sconfig_page' => $link->toString(),
+        ));
+      throw new \Exception('Your AmazonS3 bucket name is not configured. Please visit the configuration page.');
     }
 
     // Get the S3 client object.
@@ -180,7 +186,7 @@ class S3fsStream implements StreamWrapperInterface {
       }
       else {
         // Due to the config form's validation, this shouldn't ever happen.
-        throw new \Exception(t('The "Use CNAME" option is enabled, but no Domain Name has been set.'));
+        throw new \Exception($this->t('The "Use CNAME" option is enabled, but no Domain Name has been set.'));
       }
     }
 
@@ -261,14 +267,14 @@ class S3fsStream implements StreamWrapperInterface {
    * {@inheritdoc}
    */
   public function getName() {
-    return t('S3 File System');
+    return $this->t('S3 File System');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDescription() {
-    return t('Amazon Simple Storage Service.');
+    return $this->t('Amazon Simple Storage Service.');
   }
 
   /**
@@ -333,9 +339,6 @@ class S3fsStream implements StreamWrapperInterface {
    *
    * The format of the returned URL will be different depending on how the S3
    * integration has been configured on the S3 File System admin page.
-   *
-   * @param bool $no_redirect
-   *  A custom parameter for internal use by s3fs.
    *
    * @return string
    *   A web accessible URL for the resource.
@@ -543,14 +546,14 @@ class S3fsStream implements StreamWrapperInterface {
     $errors = array();
 
     if (strpos($mode, '+')) {
-      $errors[] = t('The S3 File System stream wrapper does not allow simultaneous reading and writing.');
+      $errors[] = $this->t('The S3 File System stream wrapper does not allow simultaneous reading and writing.');
     }
     if (!in_array($mode, array('r', 'w', 'a', 'x'))) {
-      $errors[] = t("Mode not supported: %mode. Use one 'r', 'w', 'a', or 'x'.", array('%mode' => $mode));
+      $errors[] = $this->t("Mode not supported: %mode. Use one 'r', 'w', 'a', or 'x'.", array('%mode' => $mode));
     }
     // When using mode "x", validate if the file exists first.
     if ($mode == 'x' && $this->_read_cache($uri)) {
-      $errors[] = t("%uri already exists in your S3 bucket, so it cannot be opened with mode 'x'.", array('%uri' => $uri));
+      $errors[] = $this->t("%uri already exists in your S3 bucket, so it cannot be opened with mode 'x'.", array('%uri' => $uri));
     }
 
     if (!$errors) {
@@ -1109,7 +1112,7 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->_get_params($uri);
     try {
       $this->s3->waitUntil('ObjectExists', $params);
-    } catch (Aws\Common\Exception\RuntimeException $e) {
+    } catch (\Exception $e) {
       return FALSE;
     }
     return TRUE;
@@ -1123,7 +1126,7 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function writeUriToCache($uri) {
     if (!$this->waitUntilFileExists($uri)) {
-      throw new S3fsException(t('The file at URI %file does not exist in S3.', array('%file' => $uri)));
+      throw new S3fsException($this->t('The file at URI %file does not exist in S3.', array('%file' => $uri)));
     }
     $metadata = $this->_get_metadata_from_s3($uri);
     $this->_write_cache($metadata);
