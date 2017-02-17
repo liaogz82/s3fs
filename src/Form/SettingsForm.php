@@ -38,7 +38,8 @@ class SettingsForm extends ConfigFormBase {
     // I couldn't find a good way to get the human-readable region names.
     $region_map = [
       '' => 'Default',
-      'us-east-1' => 'US Standard (us-east-1)',
+      'us-east-1' => 'US East - Northern Virginia (us-east-1)',
+      'us-east-2' => 'US East - Ohio (us-east-2)',
       'us-west-1' => 'US West - Northern California  (us-west-1)',
       'us-west-2' => 'US West - Oregon (us-west-2)',
       'us-gov-west-1' => 'USA GovCloud Standard (us-gov-west-1)',
