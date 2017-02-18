@@ -49,6 +49,12 @@ s3fs.settings:
     root_folder:
       type: string
       label: 'Root Folder'
+    public_folder:
+      type: string
+      label: 'Public Folder'
+    private_folder:
+      type: string
+      label: 'Private Folder'
     presigned_urls:
       type: string
       label: 'Presigned URLs'

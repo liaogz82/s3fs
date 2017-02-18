@@ -405,8 +405,9 @@ class S3fsStream implements StreamWrapperInterface {
         }
       }
 
-      // public:// files are stored in S3 inside the s3fs-public/ folder.
-      $s3_key = "s3fs-public/$s3_key";
+      // public:// files are stored in S3 inside the s3fs_public_folder.
+      $public_folder = !empty($this->config['public_folder']) ? $this->config['public_folder'] : 's3fs-public';
+      $s3_key = "{$public_folder}/$s3_key";
     }
 
     // Set up the URL settings as speciied in our settings page.
@@ -1385,14 +1386,16 @@ class S3fsStream implements StreamWrapperInterface {
     $params['Bucket'] = $this->config['bucket'];
     $params['Key'] = file_uri_target($uri);
 
-    // public:// file are all placed in the s3fs-public/ folder.
+    $public_folder = !empty($this->config['public_folder']) ? $this->config['public_folder'] : 's3fs-public';
+    $private_folder = !empty($this->config['private_folder']) ? $this->config['private_folder'] : 's3fs-private';
+    // public:// file are all placed in the s3fs_public_folder.
     if (file_uri_scheme($uri) == 'public') {
-      $params['Key'] = "s3fs-public/{$params['Key']}";
+      $params['Key'] = "$public_folder/{$params['Key']}";
     }
-    // private:// file are all placed in the s3fs-private/ folder.
+    // private:// file are all placed in the s3fs_private_folder.
     else {
       if (file_uri_scheme($uri) == 'private') {
-        $params['Key'] = "s3fs-private/{$params['Key']}";
+        $params['Key'] = "$private_folder/{$params['Key']}";
       }
     }
 

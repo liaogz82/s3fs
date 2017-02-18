@@ -278,6 +278,32 @@ class SettingsForm extends ConfigFormBase {
       System, you will need to manually move them into this folder.'
       ),
     ];
+    $advanced['additional_folders'] = [
+      '#type'        => 'fieldset',
+      '#title'       => t('Additional Folder Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed'   => TRUE,
+      '#description' => t(
+        'Like the root folder, changing these settings <b>will not</b> move any files. If you\'ve already uploaded files
+      to S3 through S3 File System, you will need to manually move them into the corresponding folders.'),
+    ];
+    $additional_folders = &$advanced['additional_folders'];
+    $additional_folders['public_folder'] = [
+      '#type'          => 'textfield',
+      '#title'         => t('Public Folder'),
+      '#default_value' => $config->get('public_folder'),
+      '#description'   => t(
+        'The name of the folder in your bucket (or within the root folder) where public:// files will be stored.'
+      ),
+    ];
+    $additional_folders['private_folder'] = [
+      '#type'          => 'textfield',
+      '#title'         => t('Private Folder'),
+      '#default_value' => $config->get('private_folder'),
+      '#description'   => t(
+        'The name of the folder in your bucket (or within the root folder) where private:// files will be stored.'
+      ),
+    ];
     $advanced['file_specific'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('File-specific Settings'),
@@ -356,6 +382,8 @@ class SettingsForm extends ConfigFormBase {
       ->set('ignore_cache', $values['ignore_cache'])
       ->set('no_rewrite_cssjs', $values['no_rewrite_cssjs'])
       ->set('root_folder', trim($values['root_folder'], '\/'))
+      ->set('public_folder', trim($values['public_folder'], '\/'))
+      ->set('private_folder', trim($values['private_folder'], '\/'))
       ->set('presigned_urls', $values['presigned_urls'])
       ->set('saveas', $values['saveas'])
       ->set('torrents', $values['torrents'])

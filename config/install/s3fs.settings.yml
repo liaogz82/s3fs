@@ -14,6 +14,8 @@ use_https: false
 ignore_cache: false
 no_rewrite_cssjs: false
 root_folder: ''
+public_folder: ''
+private_folder: ''
 presigned_urls: ''
 saveas: ''
 torrents: ''
