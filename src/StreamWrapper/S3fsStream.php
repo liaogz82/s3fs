@@ -358,7 +358,7 @@ class S3fsStream implements StreamWrapperInterface {
     // If this is a private:// file, it must be served through the
     // system/files/$path URL, which allows Drupal to restrict access
     // based on who's logged in.
-    if (file_uri_scheme($this->uri) == 'private') {
+    if (\Drupal::service('file_system')->uriScheme($this->uri) == 'private') {
       // Convert backslashes from windows filenames to forward slashes.
       $path = str_replace('\\', '/', $uri);
       $relative_url = Url::fromUserInput("/system/files/$path");
@@ -388,7 +388,7 @@ class S3fsStream implements StreamWrapperInterface {
     }
 
     // Deal with public:// files.
-    if (file_uri_scheme($this->uri) == 'public') {
+    if (\Drupal::service('file_system')->uriScheme($this->uri) == 'public') {
       // Rewrite all css/js file paths unless the user has told us not to.
       if (!$this->config['no_rewrite_cssjs']) {
         if (substr($uri, -4) == '.css') {
@@ -686,7 +686,7 @@ class S3fsStream implements StreamWrapperInterface {
       }
     }
 
-    if (file_uri_scheme($this->uri) != 'private') {
+    if (\Drupal::service('file_system')->uriScheme($this->uri) != 'private') {
       // All non-private files uploaded to S3 must be set to public-read, or users' browsers
       // will get PermissionDenied errors, and torrent URLs won't work.
       $params['ACL'] = 'public-read';
@@ -866,7 +866,7 @@ class S3fsStream implements StreamWrapperInterface {
     // Add the copyObject() parameters.
     $to_params['CopySource'] = "/{$from_params['Bucket']}/" . rawurlencode($from_params['Key']);
     $to_params['MetadataDirective'] = 'COPY';
-    if (file_uri_scheme($from_uri) != 'private') {
+    if (\Drupal::service('file_system')->uriScheme($from_uri) != 'private') {
       $to_params['ACL'] = 'public-read';
     }
 
@@ -907,7 +907,7 @@ class S3fsStream implements StreamWrapperInterface {
     if (!isset($uri)) {
       $uri = $this->uri;
     }
-    $scheme = file_uri_scheme($uri);
+    $scheme = \Drupal::service('file_system')->uriScheme($uri);
     $dirname = dirname(file_uri_target($uri));
 
     // When the dirname() call above is given '$scheme://', it returns '.'.
@@ -1026,7 +1026,7 @@ class S3fsStream implements StreamWrapperInterface {
       return FALSE;
     }
 
-    $scheme = file_uri_scheme($uri);
+    $scheme = \Drupal::service('file_system')->uriScheme($uri);
     $bare_uri = rtrim($uri, '/');
     $slash_uri = $bare_uri . '/';
 
@@ -1391,12 +1391,12 @@ class S3fsStream implements StreamWrapperInterface {
     $public_folder = !empty($this->config['public_folder']) ? $this->config['public_folder'] : 's3fs-public';
     $private_folder = !empty($this->config['private_folder']) ? $this->config['private_folder'] : 's3fs-private';
     // public:// file are all placed in the s3fs_public_folder.
-    if (file_uri_scheme($uri) == 'public') {
+    if (\Drupal::service('file_system')->uriScheme($uri) == 'public') {
       $params['Key'] = "$public_folder/{$params['Key']}";
     }
     // private:// file are all placed in the s3fs_private_folder.
     else {
-      if (file_uri_scheme($uri) == 'private') {
+      if (\Drupal::service('file_system')->uriScheme($uri) == 'private') {
         $params['Key'] = "$private_folder/{$params['Key']}";
       }
     }
