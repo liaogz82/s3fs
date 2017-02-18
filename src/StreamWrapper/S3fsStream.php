@@ -12,6 +12,7 @@ use Drupal\image\Entity\ImageStyle;
 use Drupal\s3fs\S3fsException;
 use GuzzleHttp\Psr7\CachingStream;
 use GuzzleHttp\Psr7\Stream;
+use GuzzleHttp\Psr7\StreamWrapper;
 
 /**
  * Defines a Drupal s3fs (s3fs://) stream wrapper class.
@@ -734,7 +735,8 @@ class S3fsStream implements StreamWrapperInterface {
    */
   public function stream_stat() {
     $this->_debug("stream_stat() called for {$this->uri}.");
-    $stat = fstat($this->body->getStream());
+    $resource = StreamWrapper::getResource($this->body);
+    $stat = fstat($resource);
     // Add the size of the underlying stream if it is known.
     if ($this->access_mode == 'r' && $this->body->getSize()) {
       $stat[7] = $stat['size'] = $this->body->getSize();
