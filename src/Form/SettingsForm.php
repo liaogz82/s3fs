@@ -57,7 +57,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => t('Amazon Web Services Credentials'),
       '#description' => t(
         "To configure your Amazon Web Services credentials, enter the values in the appropriate fields below.
-        You may instead set \$conf['awssdk2_access_key'] and \$conf['awssdk2_secret_key'] in your site's settings.php   file.
+        You may instead set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in your site's settings.php file.
         Values set in settings.php will override the values in these fields."
       ),
       '#collapsible' => TRUE,
