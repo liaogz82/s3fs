@@ -51,6 +51,7 @@ class SettingsForm extends ConfigFormBase {
       'ap-southeast-1' => 'Asia Pacific - Singapore (ap-southeast-1)',
       'ap-southeast-2' => 'Asia Pacific - Sydney (ap-southeast-2)',
       'ap-northeast-1' => 'Asia Pacific - Tokyo (ap-northeast-1)',
+      'ap-northeast-2' => 'Asia Pacific - Seoul (ap-northeast-2)',
       'sa-east-1' => 'South America - Sao Paulo (sa-east-1)',
       'cn-north-1' => 'China - Beijing (cn-north-1)',
     ];
