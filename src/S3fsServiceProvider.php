@@ -4,7 +4,7 @@ namespace Drupal\s3fs;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceModifierInterface;
-use Symfony\Component\DependencyInjection\Reference;
+use Drupal\Core\Site\Settings;
 
 /**
  * The stream wrapper class.
@@ -21,11 +21,15 @@ class S3fsServiceProvider implements ServiceModifierInterface {
    *   The ContainerBuilder whose service definitions can be altered.
    */
   public function alter(ContainerBuilder $container) {
-    $cssdefinition = $container->getDefinition('asset.css.dumper');
-    $cssdefinition->setClass('Drupal\s3fs\S3fsStreamOverrideManager');
-    $cssdefinition->addArgument(new Reference('config.factory'));
-    $jsdefinition = $container->getDefinition('asset.js.dumper');
-    $jsdefinition->setClass('Drupal\s3fs\S3fsStreamOverrideManager');
-    $jsdefinition->addArgument(new Reference('config.factory'));
+    if (Settings::get('s3fs.use_s3_for_public')) {
+      // Replace the public stream wrapper with S3fsStream.
+      $container->getDefinition('stream_wrapper.public')
+        ->setClass('Drupal\s3fs\StreamWrapper\PublicS3fsStream');
+    }
+    if (Settings::get('s3fs.use_s3_for_private')) {
+      // Replace the private stream wrapper with S3fsStream.
+      $container->getDefinition('stream_wrapper.private')
+        ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
+    }
   }
 }

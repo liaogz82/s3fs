@@ -12,9 +12,7 @@ cache_control_header: ''
 encryption: ''
 use_https: false
 ignore_cache: false
-use_s3_for_public: false
 no_rewrite_cssjs: false
-use_s3_for_private: false
 root_folder: ''
 presigned_urls: ''
 saveas: ''

@@ -5,6 +5,7 @@ namespace Drupal\s3fs\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -224,10 +225,12 @@ class SettingsForm extends ConfigFormBase {
     $advanced['use_s3_for_public'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use S3 for public:// files'),
-      '#default_value' => $config->get('use_s3_for_public'),
+      '#default_value' => Settings::get('s3fs.use_s3_for_public'),
+      '#disabled' => TRUE,
       '#description' => $this->t(
         'Enable this option to store all files which would be uploaded to or created in the web server\'s local file system
-      within your S3 bucket instead.<br><br>
+      within your S3 bucket instead. To replace public:// stream wrapper with s3fs stream, include the following in settings.php:<br>
+      <em>$settings[\'s3fs.use_s3_for_public\'] = TRUE;</em><br><br>
       <b>PLEASE NOTE:</b> If you intend to use Drupal\'s performance options which aggregate your CSS or Javascript
       files, or will be using any other system that writes CSS or Javascript files into your site\'s public:// file system,
       you must perform some additional configuration on your webserver to make those files work correctly when stored in S3.
@@ -251,10 +254,12 @@ class SettingsForm extends ConfigFormBase {
     $advanced['use_s3_for_private'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use S3 for private:// files'),
-      '#default_value' => $config->get('use_s3_for_private'),
+      '#default_value' => Settings::get('s3fs.use_s3_for_private'),
+      '#disabled' => TRUE,
       '#description' => $this->t(
         'Enable this option to store all files which would be uploaded to or created in the private://
-      file system (files available only to authneticated users) within your S3 bucket instead.'
+      file system (files available only to authneticated users) within your S3 bucket instead. To replace private:// stream wrapper with s3fs stream, include the following in settings.php:<br>
+        <em>$settings[\'s3fs.use_s3_for_private\'] = TRUE;</em>'
       ),
     ];
     $advanced['root_folder'] = [
@@ -347,9 +352,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('encryption', $values['encryption'])
       ->set('use_https', $values['use_https'])
       ->set('ignore_cache', $values['ignore_cache'])
-      ->set('use_s3_for_public', $values['use_s3_for_public'])
       ->set('no_rewrite_cssjs', $values['no_rewrite_cssjs'])
-      ->set('use_s3_for_private', $values['use_s3_for_private'])
       ->set('root_folder', trim($values['root_folder'], '\/'))
       ->set('presigned_urls', $values['presigned_urls'])
       ->set('saveas', $values['saveas'])

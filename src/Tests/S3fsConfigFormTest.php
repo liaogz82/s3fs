@@ -41,7 +41,6 @@ class S3fsConfigFormTest extends WebTestBase {
     $edit['domain'] = 'domaincheck.com';
     $edit['encryption'] = 'AES256';
     $edit['use_https'] = 1;
-    $edit['use_s3_for_public'] = 1;
     $edit['root_folder'] = 'rootfoldercheck';
     $edit['presigned_urls'] = '60|private_files/*';
     $edit['saveas'] = 'video/*';

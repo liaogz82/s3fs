@@ -4,6 +4,7 @@
  * @file
  * Defines a drush command that refreshes the S3 metadata cache.
  */
+use Drupal\Core\Site\Settings;
 
 /**
  * Implements hook_drush_command().
@@ -39,16 +40,16 @@ function drush_s3fs_copy_local() {
     );
     return;
   }
-  if (empty($config['use_s3_for_public']) && empty($config['use_s3_for_private'])) {
+  if (empty(Settings::get('s3fs.use_s3_for_public')) && empty(Settings::get('s3fs.use_s3_for_private'))) {
     drupal_set_message(
       t('S3 File System is not configured to take over any other file systems.')
     );
     return;
   }
-  if (!empty($config['use_s3_for_public'])) {
+  if (!empty(Settings::get('s3fs.use_s3_for_public'))) {
     \Drupal::service('s3fs.validate')->copyFileSystemToS3($config, 'public');
   }
-  if (!empty($config['use_s3_for_private'])) {
+  if (!empty(Settings::get('s3fs.use_s3_for_public'))) {
     \Drupal::service('s3fs.validate')->copyFileSystemToS3($config, 'private');
   }
 }

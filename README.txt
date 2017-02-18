@@ -61,14 +61,15 @@ CONFIGURATION
     in the server's local filesystem, because Drupal is hard-coded to use the
     public:// filesystem for such files.
 
-  * However, s3fs can be configured to handle these files, as well. On the s3fs
-    configuration page (admin/config/media/s3fs) you can enable the "Use S3 for
-    public:// files" and/or "Use S3 for private:// files" options to make s3fs
+  * However, s3fs can be configured to handle these files as well. In settings.php
+    you can enable the s3fs.use_s3_for_public and s3fs.use_s3_for_private settings to make s3fs
     take over the job of the public and/or private file systems. This will cause
     your site to store newly uploaded/generated files from the public/private file
     system in S3 instead of the local file system. However, it will make any
     existing files in those file systems become invisible to Drupal. To remedy
     this, you'll need to copy those files into your S3 bucket.
+    Example:
+    $settings['s3fs.use_s3_for_public'] = TRUE;
 
   * You are strongly encouraged to use the drush command "drush s3fs-copy-local"
     to do this, as it will copy all the files into the correct subfolders in your

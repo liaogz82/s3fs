@@ -43,15 +43,9 @@ s3fs.settings:
     ignore_cache:
       type: boolean
       label: 'Ignore the file metadata cache'
-    use_s3_for_public:
-      type: boolean
-      label: 'Use S3 for public:// files'
     no_rewrite_cssjs:
       type: boolean
       label: 'Do not rewrite CSS/JS file paths'
-    use_s3_for_private:
-      type: boolean
-      label: 'Use S3 for private:// files'
     root_folder:
       type: string
       label: 'Root Folder'
