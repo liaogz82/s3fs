@@ -32,7 +32,7 @@ function s3fs_drush_command() {
  * if s3fs is configured to take over those systems.
  */
 function drush_s3fs_copy_local() {
-  $config = \Drupal::config('s3fs.settings')->getRawData();
+  $config = \Drupal::config('s3fs.settings')->get();
   if (!\Drupal::service('s3fs.validate')->validate($config)) {
     drupal_set_message(
       t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.'),

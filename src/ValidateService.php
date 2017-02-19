@@ -75,7 +75,8 @@ class ValidateService {
 
     try {
       $s3 = $this->getAmazonS3Client($config);
-    } catch (S3Exception $e) {
+    }
+    catch (S3Exception $e) {
       if ($returnError) {
         $name = 'form';
         $msg = $e->getMessage();
@@ -89,7 +90,8 @@ class ValidateService {
       // listObjects() will trigger descriptive exceptions if the credentials,
       // bucket name, or region are invalid/mismatched.
       $s3->listObjects(['Bucket' => $config['bucket'], 'MaxKeys' => 1]);
-    } catch (S3Exception $e) {
+    }
+    catch (S3Exception $e) {
       if ($returnError) {
         $name = 'form';
         $msg = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
@@ -115,60 +117,37 @@ class ValidateService {
    * @throws \Drupal\s3fs\S3fsException
    */
   public function getAmazonS3Client($config) {
-    $s3 = drupal_static(__METHOD__);
-    $static_config = drupal_static(__METHOD__);
+    $s3 = &drupal_static(__METHOD__ . '_S3Client');
+    $static_config = &drupal_static(__METHOD__ . '_static_config');
 
     // If the client hasn't been set up yet, or the config given to this call is
     // different from the previous call, (re)build the client.
     if (!isset($s3) || $static_config != $config) {
-      $savedConfig = $this->configFactory->get('s3fs.settings')->getRawData();
-      // For the SDK credentials, get the saved settings from _s3fs_get_setting(). But since $config might be populated
-      // with to-be-validated settings, its contents (if set) override the saved settings.
-      $access_key = $savedConfig['access_key'];
-      if (isset($config['access_key'])) {
-        $access_key = $config['access_key'];
-      }
-      $secret_key = $savedConfig['secret_key'];
-      if (isset($config['secret_key'])) {
-        $secret_key = $config['secret_key'];
-      }
-      $use_instance_profile = $savedConfig['use_instance_profile'];
-      if (isset($config['use_instance_profile'])) {
-        $use_instance_profile = $config['use_instance_profile'];
-      }
-      $default_cache_config = $savedConfig['default_cache_config'];
-      if (isset($config['default_cache_config'])) {
-        $default_cache_config = $config['default_cache_config'];
-      }
 
       if (!class_exists('Aws\S3\S3Client')) {
         throw new S3fsException(
           $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the awssdk2 library is installed correctly.')
         );
       }
-      else {
-        if (!$use_instance_profile && (!$secret_key || !$access_key)) {
-          throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
-        Please set them on the S3 File System admin/config/media/s3fs page or
-        set \$conf['awssdk2_access_key'] and \$conf['awssdk2_secret_key'] in settings.php."));
-        }
-        else {
-          if ($use_instance_profile && empty($default_cache_config)) {
-            throw new s3fsException($this->t("Your AWS credentials have not been properly configured.
-        You are attempting to use instance profile credentials but you have not set a default cache location.
-        Please set it on the admin/config/media/s3fs page or set \$conf['awssdk2_default_cache_config'] in settings.php."));
-          }
-        }
+      elseif (!$config['use_instance_profile'] && (!$config['secret_key'] || !$config['access_key'])) {
+        throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
+          Please set them on the S3 File System admin/config/media/s3fs page or
+          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."));
+      }
+      elseif ($config['use_instance_profile'] && empty($config['default_cache_config'])) {
+        throw new s3fsException($this->t("Your AWS credentials have not been properly configured.
+          You are attempting to use instance profile credentials but you have not set a default cache location.
+          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php."));
       }
 
       // Create the Aws\S3\S3Client object.
-      if ($use_instance_profile) {
-        $client_config = ['default_cache_config' => $default_cache_config];
+      if ($config['use_instance_profile']) {
+        $client_config = ['default_cache_config' => $config['default_cache_config']];
       }
       else {
         $client_config['credentials'] = [
-          'key' => $access_key,
-          'secret' => $secret_key,
+          'key' => $config['access_key'],
+          'secret' => $config['secret_key'],
         ];
       }
       if (!empty($config['region'])) {
@@ -182,8 +161,8 @@ class ValidateService {
       }
       $client_config['version'] = 'latest';
       $s3 = S3Client::factory($client_config);
+      $static_config = $config;
     }
-    $static_config = $config;
     return $s3;
   }
 
