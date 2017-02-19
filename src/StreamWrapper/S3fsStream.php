@@ -889,9 +889,9 @@ class S3fsStream implements StreamWrapperInterface {
   /**
    * Gets the name of the parent directory of a given path.
    *
-   * This method is usually accessed through drupal_dirname(), which wraps
-   * around the normal PHP dirname() function, since it doesn't support stream
-   * wrappers.
+   * This method is usually accessed through \Drupal::service('file_system')->dirname(),
+   * which wraps around the normal PHP dirname() function, since it doesn't
+   * support stream wrappers.
    *
    * @param string $uri
    *   An optional URI.
@@ -899,7 +899,7 @@ class S3fsStream implements StreamWrapperInterface {
    * @return string
    *   The directory name, or FALSE if not applicable.
    *
-   * @see drupal_dirname()
+   * @see \Drupal::service('file_system')->dirname()
    */
   public function dirname($uri = NULL) {
     //   $this->_debug("dirname($uri) called.");
@@ -952,7 +952,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     // If the STREAM_MKDIR_RECURSIVE option was specified, also create all the
     // ancestor folders of this uri, except for the root directory.
-    $parent_dir = drupal_dirname($uri);
+    $parent_dir = \Drupal::service('file_system')->dirname($uri);
     if (($options & STREAM_MKDIR_RECURSIVE) && file_uri_target($parent_dir) != '') {
       return $this->mkdir($parent_dir, $mode, $options);
     }
@@ -1307,7 +1307,7 @@ class S3fsStream implements StreamWrapperInterface {
 //    $cache = \Drupal::cache('S3FS_CACHE_BIN');
 //    $cache->delete($cid);
 
-    $dirname = drupal_dirname($metadata['uri']);
+    $dirname = \Drupal::service('file_system')->dirname($metadata['uri']);
     // If this file isn't in the root directory, also write this file's
     // ancestor folders to the cache.
     if (file_uri_target($dirname) != '') {
