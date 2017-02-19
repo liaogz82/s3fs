@@ -2,7 +2,9 @@
 
 namespace Drupal\s3fs\Tests;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\simpletest\WebTestBase;
+
 
 /**
  * Tests s3fs configuration form.
@@ -10,6 +12,8 @@ use Drupal\simpletest\WebTestBase;
  * @group s3fs
  */
 class S3fsConfigFormTest extends WebTestBase {
+
+  use StringTranslationTrait;
 
   /**
    * Modules to enable.
@@ -45,8 +49,8 @@ class S3fsConfigFormTest extends WebTestBase {
     $edit['presigned_urls'] = '60|private_files/*';
     $edit['saveas'] = 'video/*';
     $edit['torrents'] = 'big_files/*';
-    $this->drupalPostForm('admin/config/media/s3fs', $edit, t('Save configuration'));
-    $this->assertText(t('The configuration options have been saved.'), t('Saved configuration'));
+    $this->drupalPostForm('admin/config/media/s3fs', $edit, $this->t('Save configuration'));
+    $this->assertText($this->t('The configuration options have been saved.'), $this->t('Saved configuration'));
   }
 
 }

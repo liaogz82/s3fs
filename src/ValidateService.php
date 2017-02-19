@@ -8,11 +8,14 @@ use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\StreamWrapper\PublicStream;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Defines a ValidateService service.
  */
 class ValidateService {
+
+  use StringTranslationTrait;
 
   /**
    * The database connection.
@@ -56,7 +59,7 @@ class ValidateService {
     if (!empty($config['use_customhost']) && empty($config['hostname'])) {
       if ($returnError) {
         $name = 'hostname';
-        $msg = t('You must specify a Hostname to use the Custom Host feature.');
+        $msg = $this->t('You must specify a Hostname to use the Custom Host feature.');
         return [$name, $msg];
       }
       return FALSE;
@@ -64,7 +67,7 @@ class ValidateService {
     if (!empty($config['use_cname']) && empty($config['domain'])) {
       if ($returnError) {
         $name = 'domain';
-        $msg = t('You must specify a CDN Domain Name to use the CNAME feature.');
+        $msg = $this->t('You must specify a CDN Domain Name to use the CNAME feature.');
         return [$name, $msg];
       }
       return FALSE;
@@ -89,7 +92,7 @@ class ValidateService {
     } catch (S3Exception $e) {
       if ($returnError) {
         $name = 'form';
-        $msg = t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
+        $msg = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
         return [$name, $msg];
       }
       return FALSE;
@@ -140,18 +143,18 @@ class ValidateService {
 
       if (!class_exists('Aws\S3\S3Client')) {
         throw new S3fsException(
-          t('Cannot load Aws\S3\S3Client class. Please ensure that the awssdk2 library is installed correctly.')
+          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the awssdk2 library is installed correctly.')
         );
       }
       else {
         if (!$use_instance_profile && (!$secret_key || !$access_key)) {
-          throw new S3fsException(t("Your AWS credentials have not been properly configured.
+          throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
         Please set them on the S3 File System admin/config/media/s3fs page or
         set \$conf['awssdk2_access_key'] and \$conf['awssdk2_secret_key'] in settings.php."));
         }
         else {
           if ($use_instance_profile && empty($default_cache_config)) {
-            throw new s3fsException(t("Your AWS credentials have not been properly configured.
+            throw new s3fsException($this->t("Your AWS credentials have not been properly configured.
         You are attempting to use instance profile credentials but you have not set a default cache location.
         Please set it on the admin/config/media/s3fs page or set \$conf['awssdk2_default_cache_config'] in settings.php."));
           }
@@ -225,7 +228,7 @@ class ValidateService {
       copy($path, "s3fs://$relative_path");
     }
 
-    drupal_set_message(t('Copied all local %scheme files to S3.', ['%scheme' => $scheme]), 'status');
+    drupal_set_message($this->t('Copied all local %scheme files to S3.', ['%scheme' => $scheme]), 'status');
   }
 
   /**

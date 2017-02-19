@@ -57,8 +57,8 @@ class SettingsForm extends ConfigFormBase {
     ];
     $form['credentials'] = [
       '#type' => 'fieldset',
-      '#title' => t('Amazon Web Services Credentials'),
-      '#description' => t(
+      '#title' => $this->t('Amazon Web Services Credentials'),
+      '#description' => $this->t(
         "To configure your Amazon Web Services credentials, enter the values in the appropriate fields below.
         You may instead set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in your site's settings.php file.
         Values set in settings.php will override the values in these fields."
@@ -69,29 +69,29 @@ class SettingsForm extends ConfigFormBase {
 
     $form['credentials']['access_key'] = [
       '#type' => 'textfield',
-      '#title' => t('Amazon Web Services Access Key'),
+      '#title' => $this->t('Amazon Web Services Access Key'),
       '#default_value' => $config->get('access_key'),
     ];
 
     $form['credentials']['secret_key'] = [
       '#type' => 'textfield',
-      '#title' => t('Amazon Web Services Secret Key'),
+      '#title' => $this->t('Amazon Web Services Secret Key'),
       '#default_value' => $config->get('secret_key'),
     ];
     $form['credentials']['use_instance_profile'] = [
       '#type' => 'checkbox',
-      '#title' => t('Use EC2 Instance Profile Credentials'),
+      '#title' => $this->t('Use EC2 Instance Profile Credentials'),
       '#default_value' => $config->get('use_instance_profile'),
-      '#description' => t(
+      '#description' => $this->t(
         'If your Drupal site is running on an Amazon EC2 server, you may use the Instance Profile Credentials from that server
         rather than setting your AWS credentials directly.'
       ),
     ];
     $form['credentials']['default_cache_config'] = [
       '#type' => 'textfield',
-      '#title' => t('Default Cache Location'),
+      '#title' => $this->t('Default Cache Location'),
       '#default_value' => $config->get('default_cache_config'),
-      '#description' => t('The default cache location for your EC2 Instance Profile Credentials.'),
+      '#description' => $this->t('The default cache location for your EC2 Instance Profile Credentials.'),
       '#states' => [
         'visible' => [
           ':input[id=edit-use-instance-profile]' => ['checked' => TRUE],
@@ -101,16 +101,16 @@ class SettingsForm extends ConfigFormBase {
 
     $form['bucket'] = [
       '#type' => 'textfield',
-      '#title' => t('S3 Bucket Name'),
+      '#title' => $this->t('S3 Bucket Name'),
       '#default_value' => $config->get('bucket'),
       '#required' => TRUE,
     ];
     $form['region'] = [
       '#type' => 'select',
       '#options' => $region_map,
-      '#title' => t('S3 Region'),
+      '#title' => $this->t('S3 Region'),
       '#default_value' => $config->get('region'),
-      '#description' => t(
+      '#description' => $this->t(
         'The region in which your bucket resides. Be careful to specify this accurately,
       as you are likely to see strange or broken behavior if the region is set wrong.<br>
       Use of the USA GovCloud region requires @SPECIAL_PERMISSION.<br>
@@ -280,27 +280,27 @@ class SettingsForm extends ConfigFormBase {
     ];
     $advanced['additional_folders'] = [
       '#type'        => 'fieldset',
-      '#title'       => t('Additional Folder Settings'),
+      '#title'       => $this->t('Additional Folder Settings'),
       '#collapsible' => TRUE,
       '#collapsed'   => TRUE,
-      '#description' => t(
+      '#description' => $this->t(
         'Like the root folder, changing these settings <b>will not</b> move any files. If you\'ve already uploaded files
       to S3 through S3 File System, you will need to manually move them into the corresponding folders.'),
     ];
     $additional_folders = &$advanced['additional_folders'];
     $additional_folders['public_folder'] = [
       '#type'          => 'textfield',
-      '#title'         => t('Public Folder'),
+      '#title'         => $this->t('Public Folder'),
       '#default_value' => $config->get('public_folder'),
-      '#description'   => t(
+      '#description'   => $this->t(
         'The name of the folder in your bucket (or within the root folder) where public:// files will be stored.'
       ),
     ];
     $additional_folders['private_folder'] = [
       '#type'          => 'textfield',
-      '#title'         => t('Private Folder'),
+      '#title'         => $this->t('Private Folder'),
       '#default_value' => $config->get('private_folder'),
-      '#description'   => t(
+      '#description'   => $this->t(
         'The name of the folder in your bucket (or within the root folder) where private:// files will be stored.'
       ),
     ];

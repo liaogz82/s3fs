@@ -2,6 +2,7 @@
 
 namespace Drupal\s3fs\Tests;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\simpletest\WebTestBase;
 
@@ -12,6 +13,8 @@ use Drupal\simpletest\WebTestBase;
  * @group s3fs
  */
 class ApiKeyConfigurationTest extends WebTestBase {
+
+  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -66,7 +69,7 @@ class ApiKeyConfigurationTest extends WebTestBase {
       'secret_key' => $secret_key,
       'bucket' => $this->randomString(8),
     ];
-    $this->drupalPostForm(Url::fromRoute('s3fs.admin_settings'), $edit, t('Save configuration'));
-    $this->assertText(t('The configuration options have been saved.'), t('Saved configuration'));
+    $this->drupalPostForm(Url::fromRoute('s3fs.admin_settings'), $edit, $this->t('Save configuration'));
+    $this->assertText($this->t('The configuration options have been saved.'), $this->t('Saved configuration'));
   }
 }
