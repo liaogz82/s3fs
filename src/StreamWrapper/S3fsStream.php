@@ -1333,14 +1333,15 @@ class S3fsStream implements StreamWrapperInterface {
     }
 
     // Build an OR query to delete all the URIs at once.
-    $delete_query = db_delete('s3fs_file');
-    $or = db_or();
+    $delete_query = \Drupal::database()->delete('s3fs_file');
+    $or = $delete_query->orConditionGroup();
     foreach ($uri as $u) {
       $or->condition('uri', $u, '=');
       // Clear this URI from the Drupal cache.
-      $cid = S3FS_CACHE_PREFIX . $u;
-      $cache = \Drupal::cache('S3FS_CACHE_BIN');
-      $cache->delete($cid);
+      // @todo in cache issue
+      // $cid = S3FS_CACHE_PREFIX . $u;
+      // $cache = \Drupal::cache('S3FS_CACHE_BIN');
+      // $cache->delete($cid);
     }
     $delete_query->condition($or);
     return $delete_query->execute();
