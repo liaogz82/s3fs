@@ -950,7 +950,7 @@ class S3fsStream implements StreamWrapperInterface {
       return (bool) $test_metadata['dir'];
     }
 
-    $metadata = _s3fs_convert_metadata($uri, []);
+    $metadata = $this->convertMetadata($uri, []);
     $this->_write_cache($metadata);
 
     // If the STREAM_MKDIR_RECURSIVE option was specified, also create all the
@@ -1214,7 +1214,7 @@ class S3fsStream implements StreamWrapperInterface {
 
     // For the root directory, return metadata for a generic folder.
     if (file_uri_target($uri) == '') {
-      return _s3fs_convert_metadata('/', []);
+      return $this->convertMetadata('/', []);
     }
 
     // Trim any trailing '/', in case this is a folder request.
@@ -1514,7 +1514,7 @@ class S3fsStream implements StreamWrapperInterface {
       return FALSE;
     }
 
-    return _s3fs_convert_metadata($uri, $result);
+    return $this->convertMetadata($uri, $result);
   }
 
   /**
@@ -1605,4 +1605,56 @@ class S3fsStream implements StreamWrapperInterface {
     // Remove erroneous leading or trailing, forward-slashes and backslashes.
     return trim($target, '\/');
   }
+
+  /**
+   * Convert file metadata returned from S3 into a metadata cache array.
+   *
+   * @param string $uri
+   *   The uri of the resource.
+   * @param array $s3_metadata
+   *   An array containing the collective metadata for the object in S3.
+   *   The caller may send an empty array here to indicate that the returned
+   *   metadata should represent a directory.
+   *
+   * @return array
+   *   A file metadata cache array.
+   */
+  protected function convertMetadata($uri, $s3_metadata) {
+    // Need to fill in a default value for everything, so that DB calls
+    // won't complain about missing fields.
+    $metadata = [
+      'uri' => $uri,
+      'filesize' => 0,
+      'timestamp' => REQUEST_TIME,
+      'dir' => 0,
+      'version' => '',
+    ];
+
+    if (empty($s3_metadata)) {
+      // The caller wants directory metadata.
+      $metadata['dir'] = 1;
+    }
+    else {
+      // The filesize value can come from either the Size or ContentLength
+      // attribute, depending on which AWS API call built $s3_metadata.
+      if (isset($s3_metadata['ContentLength'])) {
+        $metadata['filesize'] = $s3_metadata['ContentLength'];
+      }
+      else {
+        if (isset($s3_metadata['Size'])) {
+          $metadata['filesize'] = $s3_metadata['Size'];
+        }
+      }
+
+      if (isset($s3_metadata['LastModified'])) {
+        $metadata['timestamp'] = date('U', strtotime($s3_metadata['LastModified']));
+      }
+
+      if (isset($s3_metadata['VersionId'])) {
+        $metadata['version'] = $s3_metadata['VersionId'];
+      }
+    }
+    return $metadata;
+  }
+
 }
