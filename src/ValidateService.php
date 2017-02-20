@@ -135,7 +135,7 @@ class ValidateService {
           set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."));
       }
       elseif ($config['use_instance_profile'] && empty($config['default_cache_config'])) {
-        throw new s3fsException($this->t("Your AWS credentials have not been properly configured.
+        throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
           You are attempting to use instance profile credentials but you have not set a default cache location.
           Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php."));
       }
