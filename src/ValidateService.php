@@ -126,7 +126,7 @@ class ValidateService {
 
       if (!class_exists('Aws\S3\S3Client')) {
         throw new S3fsException(
-          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the awssdk2 library is installed correctly.')
+          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.')
         );
       }
       elseif (!$config['use_instance_profile'] && (!$config['secret_key'] || !$config['access_key'])) {

@@ -23,16 +23,17 @@ INSTALLATION
 ------------
 
   * With the code installation complete, you must now configure s3fs to use your
-    Amazon Web Services credentials. To do so, store them in the $conf array in
+    Amazon Web Services credentials. To do so, store them in the $config array in
     your site's settings.php file (sites/default/settings.php), like so:
-    $conf['awssdk2_access_key'] = 'YOUR ACCESS KEY';
-    $conf['awssdk2_secret_key'] = 'YOUR SECRET KEY';
+    $config['s3fs.settins']['access_key'] = 'YOUR ACCESS KEY';
+    $config['s3fs.settins']['secret_key'] = 'YOUR SECRET KEY';
 
   * Configure your setttings for S3 File System (including your S3 bucket name) at
-    /admin/config/media/s3fs/settings. You can input your AWS credentials on this
-    page as well, but using the $conf array is reccomended.
+    /admin/config/media/s3fs. You can input your AWS credentials on this page as
+    well, but using the $config array is reccomended.
 
-  * With the settings saved, go to /admin/config/media/s3fs/actions to refresh the
+  * @todo this is not implemented yet
+    With the settings saved, go to /admin/config/media/s3fs/actions to refresh the
     file metadata cache. This will copy the filenames and attributes for every
     existing file in your S3 bucket into Drupal's database. This can take a
     significant amount of time for very large buckets (thousands of files). If this
@@ -62,12 +63,12 @@ CONFIGURATION
     public:// filesystem for such files.
 
   * However, s3fs can be configured to handle these files as well. In settings.php
-    you can enable the s3fs.use_s3_for_public and s3fs.use_s3_for_private settings to make s3fs
-    take over the job of the public and/or private file systems. This will cause
-    your site to store newly uploaded/generated files from the public/private file
-    system in S3 instead of the local file system. However, it will make any
-    existing files in those file systems become invisible to Drupal. To remedy
-    this, you'll need to copy those files into your S3 bucket.
+    you can enable the s3fs.use_s3_for_public and s3fs.use_s3_for_private settings
+    to make s3fs take over the job of the public and/or private file systems. This
+    will cause your site to store newly uploaded/generated files from the
+    public/private file system in S3 instead of the local file system. However, it
+    will make any existing files in those file systems become invisible to Drupal.
+    To remedy this, you'll need to copy those files into your S3 bucket.
     Example:
     $settings['s3fs.use_s3_for_public'] = TRUE;
 
@@ -77,7 +78,8 @@ CONFIGURATION
     metadata cache. If you don't have drush, you can use the buttons provided on
     the S3FS Actions page (admin/config/media/s3fs/actions), though the copy
     operation may fail if you have a lot of files, or very large files. The drush
-    command will cleanly handle any combination of files.
+    command will cleanly handle any combination of files. @todo actions page is
+    not implemented yet in 8 version.
 
 
 TROUBLESHOOTING
@@ -86,13 +88,13 @@ TROUBLESHOOTING
   * In the unlikely circumstance that the version of the SDK you downloaded causes
     errors with S3 File System, you can download this version instead, which is
     known to work:
-    https://github.com/aws/aws-sdk-php/releases/download/2.7.25/aws.zip
+    https://github.com/aws/aws-sdk-php/releases/download/3.22.7/aws.zip
 
   * IN CASE OF TROUBLE DETECTING THE AWS SDK LIBRARY:
-    Ensure that the awssdk2 folder itself, and all the files within it, can be read
+    Ensure that the aws folder itself, and all the files within it, can be read
     by your webserver. Usually this means that the user "apache" (or "_www" on OSX)
     must have read permissions for the files, and read+execute permissions for all
-    the folders in the path leading to the awssdk2 files.
+    the folders in the path leading to the aws files.
 
 
 AGGREGATED CSS AND JS IN S3
@@ -143,38 +145,26 @@ AGGREGATED CSS AND JS IN S3
     option to prevent s3fs from prefixing the URLs for CSS/JS files.
 
 
-UPGRADING FROM S3 FILE SYSTEM 7.x-1.x
--------------------------------------
+UPGRADING FROM S3 FILE SYSTEM 7.x-2.x or 7.x-3.x
+------------------------------------------------
 
-  * s3fs 7.x-2.x is not 100% backwards-compatible with 7.x-1.x. Most things will
-    work the same, but if you were using certain options in 1.x, you'll need to
-    perform some manual intervention to handle the upgrade to 2.x.
+  * Drupal 8 version has the most of 7 params, you must use the new $config
+    and $settings arrays, please read INSTALLATION and CONFIGURATION sections.
 
-  * The Partial Refresh Prefix setting has been replaced with the Root Folder
-    setting. Root Folder fulfills the same purpose, but the implementation is
-    sufficiently different that you'll need to re-configure your site, and
-    possibly rearrange the files in your S3 bucket to make it work.
+  * The database schema is the same than 7. Export and import, it could be
+    enough. Other options could be refresh metadata cache when it'll be
+    implemented.
 
-  * With Root Folder, *everything* s3fs does is contained to the specified folder
-    in your bucket. s3fs acts like the root folder is the bucket root, which means
-    that the URIs for your files will not reflect the root folder's existence.
-    Thus, you won't need to configure anything else, like the "file directory"
-    setting of file and image fields, to make it work.
-
-  * This is different from how Partial Refresh Prefix worked, because that prefix
-    was reflected in the uris, and you had to configure your file and image
-    fields appropriately.
-
-  * So, when upgrading to 7.x-2.x, you'll need to set the Root Folder option to the
-    same value that you had for Partial Refresh Prefix, and then remove that folder
-    from your fields' "File directory" settings. Then, move every file that s3fs
-    previously put into your bucket into the Root Folder. And if there are other
-    files in your bucket that you want s3fs to know about, move them into there,
-    too. Then do a metadata refresh.
+  * If you use some functions or methods from .module or other files in your
+    custom code you must find the equivalent function or method.
 
 
 KNOWN ISSUES
 ------------
+
+  * These problems are from Drupal 7, now we don't know if they happen in 8.
+    If you tried that options or know new issues, please create a new issue
+    in https://www.drupal.org/project/issues/s3fs?version=8.x
 
   * Some curl libraries, such as the one bundled with MAMP, do not come
     with authoritative certificate files. See the following page for details:
@@ -220,3 +210,5 @@ Current maintainers:
   * neerajskydiver (https://www.drupal.org/u/neerajskydiver)
 
   * Abhishek Anand (https://www.drupal.org/u/abhishek-anand)
+
+  * jansete (https://www.drupal.org/u/jansete)
