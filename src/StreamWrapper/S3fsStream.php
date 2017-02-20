@@ -362,7 +362,7 @@ class S3fsStream implements StreamWrapperInterface {
       // Convert backslashes from windows filenames to forward slashes.
       $path = str_replace('\\', '/', $uri);
       $relative_url = Url::fromUserInput("/system/files/$path");
-      return \Drupal::l($relative_url, $relative_url);
+      return Link::fromTextAndUrl($relative_url, $relative_url);
       //return url("system/files/$path", array('absolute' => TRUE));
     }
 
@@ -703,7 +703,8 @@ class S3fsStream implements StreamWrapperInterface {
     try {
       $this->s3->putObject($params);
       $this->writeUriToCache($this->uri);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
@@ -831,7 +832,8 @@ class S3fsStream implements StreamWrapperInterface {
       $this->s3->deleteObject($this->_get_params($uri));
       $this->_delete_cache($uri);
       clearstatcache(TRUE, $uri);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
@@ -880,7 +882,8 @@ class S3fsStream implements StreamWrapperInterface {
       $this->waitUntilFileExists($to_uri);
       // Now that we know the new object is there, delete the old one.
       return $this->unlink($from_uri);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->_debug($e->getMessage());
       return $this->_trigger_error($e->getMessage());
     }
@@ -1039,12 +1042,11 @@ class S3fsStream implements StreamWrapperInterface {
 
     // Get the list of uris for files and folders which are children of the
     // specified folder, but not grandchildren.
-    $child_uris = \Drupal::database()->select('s3fs_file', 's')
-      ->fields('s', ['uri'])
-      ->condition('uri', db_like($slash_uri) . '%', 'LIKE')
-      ->condition('uri', db_like($slash_uri) . '%/%', 'NOT LIKE')
-      ->execute()
-      ->fetchCol(0);
+    $query = \Drupal::database()->select('s3fs_file', 's');
+    $query->fields('s', ['uri']);
+    $query->condition('uri', $query->escapeLike($slash_uri) . '%', 'LIKE');
+    $query->condition('uri', $query->escapeLike($slash_uri) . '%/%', 'NOT LIKE');
+    $child_uris = $query->execute()->fetchCol(0);
 
     $this->dir = [];
     foreach ($child_uris as $child_uri) {
@@ -1115,7 +1117,8 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->_get_params($uri);
     try {
       $this->s3->waitUntil('ObjectExists', $params);
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       return FALSE;
     }
     return TRUE;
@@ -1226,7 +1229,8 @@ class S3fsStream implements StreamWrapperInterface {
       try {
         // If _get_metadata_from_s3() returns FALSE, the file doesn't exist.
         $metadata = $this->_get_metadata_from_s3($uri);
-      } catch (\Exception $e) {
+      }
+      catch (\Exception $e) {
         $this->_debug($e->getMessage());
         return $this->_trigger_error($e->getMessage());
       }
@@ -1296,7 +1300,7 @@ class S3fsStream implements StreamWrapperInterface {
       $metadata['uri'] = preg_replace('^private://[/]+^', 'private://', $metadata['uri']);
     }*/
 
-    db_merge('s3fs_file')
+    \Drupal::database()->merge('s3fs_file')
       ->key(['uri' => $metadata['uri']])
       ->fields($metadata)
       ->execute();
@@ -1447,7 +1451,8 @@ class S3fsStream implements StreamWrapperInterface {
       // Get the body of the object
       $this->body = $this->s3->getObject($params)->get('Body');
       $this->body->seek(0, SEEK_END);
-    } catch (Aws\S3\Exception\S3Exception $e) {
+    }
+    catch (Aws\S3\Exception\S3Exception $e) {
       // The object does not exist, so use a simple write stream.
       $this->_open_write_stream($params, $errors);
     }
@@ -1502,7 +1507,8 @@ class S3fsStream implements StreamWrapperInterface {
     $params = $this->_get_params($uri);
     try {
       $result = $this->s3->headObject($params);
-    } catch (Aws\S3\Exception\NoSuchKeyException $e) {
+    }
+    catch (Aws\S3\Exception\NoSuchKeyException $e) {
       // headObject() throws this exception if the requested key doesn't exist
       // in the bucket.
       return FALSE;
