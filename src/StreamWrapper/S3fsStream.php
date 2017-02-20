@@ -177,7 +177,7 @@ class S3fsStream implements StreamWrapperInterface {
     // CNAME support for customizing S3 URLs.
     // If use_cname is not enabled, file URLs do not use $this->domain.
     if (!empty($this->config['use_cname']) && !empty($this->config['domain'])) {
-      $domain = check_url($this->config['domain']);
+      $domain = UrlHelper::filterBadProtocol($this->config['domain']);
       if ($domain) {
         // If domain is set to a root-relative path, add the hostname back in.
         if (strpos($domain, '/') === 0) {
