@@ -7,6 +7,7 @@ use Aws\S3\S3Client;
 use Aws\S3\StreamWrapper;
 use Aws\S3\S3ClientInterface;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Link;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -539,6 +540,10 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   /**
    * {@inheritdoc}
    *
+   * This wrapper does not support touch(), chmod(), chown(), or chgrp().
+   *
+   * Always returns FALSE.
+   *
    * @see http://php.net/manual/en/streamwrapper.stream-metadata.php
    */
   public function stream_metadata($uri, $option, $value) {
@@ -1003,18 +1008,39 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     if (strpos($uri, 'public:///') === 0) {
       $uri = preg_replace('^public://[/]+^', 'public://', $uri);
     }
+    elseif (strpos($uri, 'private:///') === 0) {
+      $uri = preg_replace('^private://[/]+^', 'private://', $uri);
+    }
+
+    // Cache DB reads so that faster caching mechanisms (e.g. redis, memcache)
+    // can further improve performance.
+    $cid = S3FS_CACHE_PREFIX . $uri;
+    $cache = \Drupal::cache(S3FS_CACHE_BIN);
+
+    if ($cached = $cache->get($cid)) {
+      $record = $cached->data;
+    }
     else {
-      if (strpos($uri, 'private:///') === 0) {
-        $uri = preg_replace('^private://[/]+^', 'private://', $uri);
+      $lock = \Drupal::lock();
+      // Cache miss. Avoid a stampede.
+      if (!$lock->acquire($cid, 1)) {
+        // Another request is building the variable cache. Wait, then re-run
+        // this function
+        $lock->wait($cid);
+        $record = $this->_read_cache($uri);
+      }
+      else {
+        $record = \Drupal::database()->select('s3fs_file', 's')
+          ->fields('s')
+          ->condition('uri', $uri, '=')
+          ->execute()
+          ->fetchAssoc();
+
+        $cache->set($cid, $record);
+        $lock->release($cid);
       }
     }
-    //@todo: Cache Implementation
 
-    $record = \Drupal::database()->select('s3fs_file', 's')
-      ->fields('s')
-      ->condition('uri', $uri, '=')
-      ->execute()
-      ->fetchAssoc();
     return $record ? $record : FALSE;
   }
 
@@ -1036,13 +1062,12 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // (a file named blah.jpg at the root of the file system), we'll sometimes
     // receive files with a /// in their URI. This messes with our caching
     // scheme, though, so we need to remove the extra /.
-    //@todo: Work this out if needed
-    /*if (strpos($metadata['uri'], 'public:///') === 0) {
+    if (strpos($metadata['uri'], 'public:///') === 0) {
       $metadata['uri'] = preg_replace('^public://[/]+^', 'public://', $metadata['uri']);
     }
     else if (strpos($metadata['uri'], 'private:///') === 0) {
       $metadata['uri'] = preg_replace('^private://[/]+^', 'private://', $metadata['uri']);
-    }*/
+    }
 
     \Drupal::database()->merge('s3fs_file')
       ->key(['uri' => $metadata['uri']])
@@ -1051,9 +1076,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
     // Clear this URI from the Drupal cache, to ensure the next read isn't
     // from a stale cache entry.
-//    $cid = S3FS_CACHE_PREFIX . $metadata['uri'];
-//    $cache = \Drupal::cache('S3FS_CACHE_BIN');
-//    $cache->delete($cid);
+    $cid = S3FS_CACHE_PREFIX . $metadata['uri'];
+    $cache = \Drupal::cache(S3FS_CACHE_BIN);
+    $cache->delete($cid);
 
     $dirname = \Drupal::service('file_system')->dirname($metadata['uri']);
     // If this file isn't in the root directory, also write this file's
@@ -1078,17 +1103,21 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $uri = [$uri];
     }
 
+    $cids = [];
+
     // Build an OR query to delete all the URIs at once.
     $delete_query = \Drupal::database()->delete('s3fs_file');
     $or = $delete_query->orConditionGroup();
     foreach ($uri as $u) {
       $or->condition('uri', $u, '=');
-      // Clear this URI from the Drupal cache.
-      // @todo in cache issue
-      // $cid = S3FS_CACHE_PREFIX . $u;
-      // $cache = \Drupal::cache('S3FS_CACHE_BIN');
-      // $cache->delete($cid);
+      // Add URI to cids to be cleared from the Drupal cache.
+      $cids[] = S3FS_CACHE_PREFIX . $u;
     }
+
+    // Clear URIs from the Drupal cache.
+    $cache = \Drupal::cache(S3FS_CACHE_BIN);
+    $cache->deleteMultiple($cids);
+
     $delete_query->condition($or);
     return $delete_query->execute();
   }
