@@ -236,12 +236,16 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return string
    *   The empty string. Since this is a remote stream wrapper,
    *   it has no directory path.
+   *
+   * @see LocalStream::getDirectoryPath()
    */
   public function getDirectoryPath() {
     return '';
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Sets the stream resource URI. URIs are formatted as "<scheme>://filepath".
    *
    * @param string $uri
@@ -252,6 +256,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Returns the stream resource URI, which looks like "<scheme>://filepath".
    *
    * @return string
@@ -262,6 +268,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * This wrapper does not support realpath().
    *
    * @return bool
@@ -271,11 +279,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     return FALSE;
   }
 
-  public function moveUploadedFile($filename, $uri) {
-    return FALSE;
-  }
-
   /**
+   * {@inheritdoc}
+   *
    * Returns a web accessible URL for the resource.
    *
    * The format of the returned URL will be different depending on how the S3
@@ -451,6 +457,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for fopen(), file_get_contents(), file_put_contents() etc.
    *
    * @param string $uri
@@ -475,6 +483,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * This wrapper does not support flock().
    *
    * @return bool
@@ -487,6 +497,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for fflush(). Flush current cached stream data to a file in S3.
    *
    * @return bool
@@ -528,6 +540,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * @see http://php.net/manual/en/streamwrapper.stream-metadata.php
    */
   public function stream_metadata($uri, $option, $value) {
@@ -557,6 +571,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for unlink().
    *
    * @param string $uri
@@ -582,6 +598,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for rename().
    *
    * If $to_uri exists, this file will be overwritten. This behavior is
@@ -617,6 +635,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Gets the name of the parent directory of a given path.
    *
    * This method is usually accessed through \Drupal::service('file_system')->dirname(),
@@ -648,6 +668,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for mkdir().
    *
    * @param string $uri
@@ -689,6 +711,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for rmdir().
    *
    * @param string $uri
@@ -738,6 +762,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for stat().
    *
    * @param string $uri
@@ -757,6 +783,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for opendir().
    *
    * @param string $uri
@@ -802,6 +830,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Support for readdir().
    *
    * @return string
@@ -1075,7 +1105,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return array
    *   An array of DB-compatible file metadata.
    *
-   * @throws \Exception
+   * @throws S3fsException
    *   Any exception raised by the listObjects() S3 command will percolate
    *   out of this function.
    */
@@ -1103,9 +1133,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * @return bool
    *   Always returns FALSE.
-   *
-   * @throws RuntimeException
-   *   If the 'throw_exceptions' option is TRUE.
    */
   protected function _trigger_error($errors, $flags = NULL) {
     if ($flags != STREAM_URL_STAT_QUIET) {
@@ -1189,6 +1216,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Get the stream's context options or remove them if wanting default.
    *
    * @param bool $removeContextData
@@ -1275,6 +1304,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Ensure the S3 protocol is registered to this class and not parents.
    *
    * @param \Aws\S3\S3ClientInterface $client
