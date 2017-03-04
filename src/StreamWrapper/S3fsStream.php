@@ -26,9 +26,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
   const API_VERSION = '2006-03-01';
 
-  /** @var resource|null Stream context (this is set by PHP) */
-  public $context;
-
   /** @var array Hash of opened stream parameters */
   private $params = [];
 
