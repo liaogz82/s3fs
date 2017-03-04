@@ -560,12 +560,17 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     return FALSE;
   }
 
-  //@todo: Needs Work
   /**
    * {@inheritdoc}
+   *
+   * This wrapper does not support stream_truncate.
+   *
+   * Always returns FALSE.
+   *
+   * @see http://php.net/manual/en/streamwrapper.stream-truncate.php
    */
   public function stream_truncate($new_size) {
-    return ftruncate($this->handle, $new_size);
+    return FALSE;
   }
 
   /**
@@ -734,17 +739,16 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // ends with /. In addition, we must differentiate against files with this
     // folder's name as a substring.
     // e.g. rmdir('s3://foo/bar') should ignore s3://foo/barbell.jpg.
-    $bare_path = rtrim($uri, '/');
-    $slash_path = $bare_path . '/';
+    $base_path = rtrim($uri, '/');
+    $slash_path = $base_path . '/';
 
     // Check if the folder is empty.
     $query = \Drupal::database()->select('s3fs_file', 's');
     $query->fields('s')
       ->condition('uri', $query->escapeLike($slash_path) . '%', 'LIKE');
 
-    // @todo review if it's possible replace by fetchAssoc
     $files = $query->execute()
-      ->fetchAll(\PDO::FETCH_ASSOC);
+      ->fetchAll();
 
     // If the folder is empty, it's eligible for deletion.
     if (empty($files)) {
