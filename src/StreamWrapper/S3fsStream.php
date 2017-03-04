@@ -24,6 +24,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
   use StringTranslationTrait;
 
+  const API_VERSION = '2006-03-01';
+
   /** @var resource|null Stream context (this is set by PHP) */
   public $context;
 
@@ -200,7 +202,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
         'secret' => $this->config['secret_key'],
       ],
       'region' => $this->config['region'],
-      'version' => 'latest',
+      'version' => static::API_VERSION,
     ]);
   }
 

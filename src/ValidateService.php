@@ -9,6 +9,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\StreamWrapper\PublicStream;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\s3fs\StreamWrapper\S3fsStream;
 
 /**
  * Defines a ValidateService service.
@@ -159,7 +160,7 @@ class ValidateService {
       if (!empty($config['use_customhost']) && !empty($config['hostname'])) {
         $client_config['base_url'] = $config['hostname'];
       }
-      $client_config['version'] = 'latest';
+      $client_config['version'] = S3fsStream::API_VERSION;
       $s3 = S3Client::factory($client_config);
       $static_config = $config;
     }
