@@ -196,7 +196,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   private function getClient() {
-    return S3Client::factory([
+    return new S3Client([
       'credentials' => [
         'key' => $this->config['access_key'],
         'secret' => $this->config['secret_key'],

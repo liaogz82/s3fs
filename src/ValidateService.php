@@ -161,7 +161,7 @@ class ValidateService {
         $client_config['base_url'] = $config['hostname'];
       }
       $client_config['version'] = S3fsStream::API_VERSION;
-      $s3 = S3Client::factory($client_config);
+      $s3 = new S3Client($client_config);
       $static_config = $config;
     }
     return $s3;
