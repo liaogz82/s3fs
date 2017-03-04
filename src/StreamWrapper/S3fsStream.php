@@ -47,47 +47,23 @@ class S3fsStream implements StreamWrapperInterface {
    */
   protected $uri;
 
-  /**
-   * The AWS SDK for PHP S3Client object.
-   *
-   * @var \Aws\S3\S3Client
-   */
+  /** @var Aws\S3\S3Client The AWS SDK for PHP S3Client object */
   protected $s3 = NULL;
 
-  /**
-   * Domain we use to access files over http.
-   *
-   * @var string
-   */
+  /** @var string Domain we use to access files over http */
   protected $domain = NULL;
 
-  /**
-   * Directory listing used by the dir_* methods.
-   *
-   * @var array
-   */
+  /** @var array Directory listing used by the dir_* methods */
   protected $dir = NULL;
 
-  /**
-   * Map for files that should be delivered with a torrent URL.
-   *
-   * @var array
-   */
-  protected $torrents = [];
+  /** @var array Map for files that should be delivered with a torrent URL */
+  protected $torrents = array();
 
-  /**
-   * Files that the user has said must be downloaded, rather than viewed.
-   *
-   * @var array
-   */
-  protected $saveas = [];
+  /** @var array Files that the user has said must be downloaded, rather than viewed */
+  protected $saveas = array();
 
-  /**
-   * Files which should be created with URLs that eventually time out.
-   *
-   * @var array
-   */
-  protected $presignedURLs = [];
+  /** @var array Files which should be created with URLs that eventually time out */
+  protected $presignedURLs = array();
 
   /**
    * The constructor sets this to TRUE once it's finished.
@@ -98,21 +74,10 @@ class S3fsStream implements StreamWrapperInterface {
    */
   protected $constructed = FALSE;
 
-  /**
-   * Default map for determining file mime types.
-   *
-   * @var array
-   */
+  /** @var array Default map for determining file mime types */
   protected static $mimeTypeMapping = NULL;
 
-  /**
-   * Indicates the current error state in the wrapper.
-   *
-   * This allows _trigger_error() to tell other stream_* functions to return
-   * FALSE when the wrapper encounters an error.
-   *
-   * @var bool
-   */
+  /** @var bool Indicates the current error state in the wrapper */
   protected $_error_state = FALSE;
 
   /**
