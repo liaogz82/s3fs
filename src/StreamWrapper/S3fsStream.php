@@ -857,7 +857,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    */
   public function waitUntilFileExists($uri) {
     // Retry ten times, once every second.
-    $params = $this->getCommandParams($uri, FALSE);
+    $params = $this->getCommandParams($uri);
     $params['@waiter'] = array(
       'delay' => 1,
       'maxAttempts' => 10,
@@ -1222,10 +1222,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * @return array
    *   An array of options.
-   *
-   * @todo review access
    */
-  public function getOptions($removeContextData = false) {
+  private function getOptions($removeContextData = false) {
     // Context is not set when doing things like stat
     if (is_null($this->context)) {
       $this->context = stream_context_get_default();
