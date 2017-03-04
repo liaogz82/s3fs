@@ -2,7 +2,7 @@ services:
   stream_wrapper.s3fs:
     class: Drupal\s3fs\StreamWrapper\S3fsStream
     tags:
-      - { name: stream_wrapper, scheme: s3fs }
+      - { name: stream_wrapper, scheme: s3 }
   stream_wrapper.s3fsstreamoverride:
       class: Drupal\s3fs\S3fsStreamOverrideManager
   s3fs.validate:

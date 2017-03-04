@@ -204,7 +204,7 @@ class ValidateService {
       print "Copying $scheme://$relative_path into S3...\n";
       // Finally get to make use of S3fsStreamWrapper's "S3 is actually a local
       // file system. No really!" functionality.
-      copy($path, "s3fs://$relative_path");
+      copy($path, "s3://$relative_path");
     }
 
     drupal_set_message($this->t('Copied all local %scheme files to S3.', ['%scheme' => $scheme]), 'status');
