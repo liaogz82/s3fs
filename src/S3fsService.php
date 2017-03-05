@@ -174,34 +174,32 @@ class S3fsService implements S3fsServiceInterface {
    *   An s3fs configuration array.
    * @param $scheme
    *   A variable defining which scheme (Public or Private) to copy.
+   *
+   * @todo implements a Batch, UI and Drush compatible
    */
   public function copyFileSystemToS3($config, $scheme) {
     if ($scheme == 'public') {
       $source_folder = realpath(PublicStream::basePath());
       $target_folder = !empty($config['public_folder']) ? $config['public_folder'] . '/' : 's3fs-public/';
     }
-    else {
-      if ($scheme == 'private') {
-        $source_folder = (PrivateStream::basePath() ? PrivateStream::basePath() : '');
-        $source_folder_real = realpath($source_folder);
-        if (empty($source_folder) || empty($source_folder_real)) {
-          drupal_set_message('Private file system base path is unknown. Unable to perform S3 copy.', 'error');
-          return;
-        }
-        $target_folder = !empty($config['private_folder']) ? $config['private_folder'] . '/' : 's3fs-private/';
+    elseif ($scheme == 'private') {
+      $source_folder = PrivateStream::basePath() ? PrivateStream::basePath() : '';
+      $source_folder_real = realpath($source_folder);
+      if (empty($source_folder) || empty($source_folder_real)) {
+        drupal_set_message('Private file system base path is unknown. Unable to perform S3 copy.', 'error');
+        return;
       }
+      $target_folder = !empty($config['private_folder']) ? $config['private_folder'] . '/' : 's3fs-private/';
     }
 
     if (!empty($config['root_folder'])) {
       $target_folder = "{$config['root_folder']}/$target_folder";
     }
 
-    // Create S3 object to move files.
-    $s3 = $this->getAmazonS3Client($config);
-
     $file_paths = $this->dirScan($source_folder);
     foreach ($file_paths as $path) {
-      $relative_path = str_replace($source_folder . '/', '', $path);
+      $relative_path = $target_folder . str_replace($source_folder . '/', '', $path);
+      // @todo Avoid use print, check if is drush and use drush log
       print "Copying $scheme://$relative_path into S3...\n";
       // Finally get to make use of S3fsStreamWrapper's "S3 is actually a local
       // file system. No really!" functionality.

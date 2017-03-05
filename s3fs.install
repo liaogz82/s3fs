@@ -159,14 +159,3 @@ function s3fs_install() {
   }
 
 }
-
-/**
- * Add public_folder and private_folder config items.
- */
-function s3fs_update_8201() {
-  $config_factory = \Drupal::configFactory();
-  $settings = $config_factory->getEditable('s3fs.settings');
-  $settings->set('public_folder', '')
-    ->set('private_folder', '')
-    ->save(TRUE);
-}

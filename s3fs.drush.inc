@@ -12,6 +12,7 @@ use Drupal\Core\Site\Settings;
 function s3fs_drush_command() {
   $items = array();
 
+  // @todo add options to filter by scheme publir or private
   $items['s3fs-copy-local'] = array(
     'description' => 'Copy local files from your public and/or private file system(s) into your S3 bucket, if s3fs is configured to take them over.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
@@ -34,22 +35,24 @@ function s3fs_drush_command() {
 function drush_s3fs_copy_local() {
   $config = \Drupal::config('s3fs.settings')->get();
   if (!\Drupal::service('s3fs')->validate($config)) {
+    // @todo use drush_log or drush_error instead
     drupal_set_message(
       t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.'),
       'error'
     );
     return;
   }
+  // @todo It shouldn't be necessary this, you can activate after the migration.
   if (empty(Settings::get('s3fs.use_s3_for_public')) && empty(Settings::get('s3fs.use_s3_for_private'))) {
     drupal_set_message(
       t('S3 File System is not configured to take over any other file systems.')
     );
     return;
   }
-  if (!empty(Settings::get('s3fs.use_s3_for_public'))) {
-    \Drupal::service('s3fs')->copyFileSystemToS3($config, 'public');
-  }
-  if (!empty(Settings::get('s3fs.use_s3_for_public'))) {
+
+  \Drupal::service('s3fs')->copyFileSystemToS3($config, 'public');
+
+  if (Settings::get('file_private_path')) {
     \Drupal::service('s3fs')->copyFileSystemToS3($config, 'private');
   }
 }
