@@ -32,8 +32,7 @@ INSTALLATION
     /admin/config/media/s3fs. You can input your AWS credentials on this page as
     well, but using the $config array is reccomended.
 
-  * @todo this is not implemented yet
-    With the settings saved, go to /admin/config/media/s3fs/actions to refresh the
+  * With the settings saved, go to /admin/config/media/s3fs/actions to refresh the
     file metadata cache. This will copy the filenames and attributes for every
     existing file in your S3 bucket into Drupal's database. This can take a
     significant amount of time for very large buckets (thousands of files). If this
@@ -82,8 +81,7 @@ COPY LOCAL FILES TO S3
     metadata cache. If you don't have drush, you can use the buttons provided on
     the S3FS Actions page (admin/config/media/s3fs/actions), though the copy
     operation may fail if you have a lot of files, or very large files. The drush
-    command will cleanly handle any combination of files. @todo actions page is
-    not implemented yet in 8 version.
+    command will cleanly handle any combination of files.
 
 
 TROUBLESHOOTING

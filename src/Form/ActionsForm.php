@@ -43,13 +43,16 @@ class ActionsForm extends FormBase {
       '#type' => 'submit',
       '#suffix' => '<div class="refresh">' . $refresh_description . '</div>',
       '#value' => $this->t('Refresh file metadata cache'),
-      '#attached' => array(
-//        'css' => array(
-          // Push the button closer to its own description, and push the disable
-          // checkbox away from the description.
-//          '#edit-refresh {margin-bottom: 0; margin-top: 1em;} div.refresh {margin-bottom: 1em;}' => array('type' => 'inline')
-//        ),
-      ),
+      // @todo Now we can't attach css inline with #attached, when core
+      // implements, we implement too
+      // @see https://www.drupal.org/node/2391025
+      // '#attached' => array(
+      // 'css' => array(
+      // // Push the button closer to its own description, and push the disable
+      // // checkbox away from the description.
+      // '#edit-refresh {margin-bottom: 0; margin-top: 1em;} div.refresh {margin-bottom: 1em;}' => array('type' => 'inline')
+      // ),
+      // ),
       '#validate' => array(
         array($this, 'refreshCacheValidateForm'),
       ),
