@@ -12,9 +12,9 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\s3fs\StreamWrapper\S3fsStream;
 
 /**
- * Defines a ValidateService service.
+ * Defines a S3fsService service.
  */
-class ValidateService {
+class S3fsService {
 
   use StringTranslationTrait;
 
@@ -33,7 +33,7 @@ class ValidateService {
   protected $configFactory;
 
   /**
-   * Constructs an ValidateService object.
+   * Constructs an S3fsService object.
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The new database connection object.

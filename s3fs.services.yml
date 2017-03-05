@@ -5,6 +5,6 @@ services:
       - { name: stream_wrapper, scheme: s3 }
   stream_wrapper.s3fsstreamoverride:
       class: Drupal\s3fs\S3fsStreamOverrideManager
-  s3fs.validate:
-    class: Drupal\s3fs\ValidateService
+  s3fs:
+    class: Drupal\s3fs\S3fsService
     arguments: ['@database', '@config.factory']
