@@ -5,6 +5,7 @@
  * Defines a drush command that refreshes the S3 metadata cache.
  */
 use Drupal\Core\Site\Settings;
+use Drush\Log\LogLevel;
 
 /**
  * Implements hook_drush_command().
@@ -15,6 +16,9 @@ function s3fs_drush_command() {
   // @todo add options to filter by scheme publir or private
   $items['s3fs-copy-local'] = array(
     'description' => 'Copy local files from your public and/or private file system(s) into your S3 bucket, if s3fs is configured to take them over.',
+    'options' => array(
+      'scheme' => 'Limit the process to an specific scheme. E.g. (public or private), all by default.',
+    ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
     'aliases' => array('s3fs-cl'),
     'callback' => 'drush_s3fs_copy_local',
@@ -27,32 +31,43 @@ function s3fs_drush_command() {
 }
 
 /**
+ *
  * Implements drush_hook_COMMAND().
  *
- * Copies all files from the local public/private filesystem folders into S3,
- * if s3fs is configured to take over those systems.
+ * Copies all files from the local public/private filesystem folders into S3.
+ *
+ * @param string $scheme
+ *
+ * @return void|int
  */
-function drush_s3fs_copy_local() {
+function drush_s3fs_copy_local($scheme = 'all') {
+  drush_log(dt('You are going to copy @scheme scheme(s).', array('@scheme' => $scheme)), LogLevel::OK);
+  drush_log(dt('You should have read "Copy local files to S3" section in README.txt.'), LogLevel::WARNING);
+  drush_print(dt('This command only is useful if you have or you are going to have enabled s3 for public/private in your setting.php'));
+
+  if (!drush_confirm('Are you sure?')) {
+    return drush_user_abort();
+  }
+
   $config = \Drupal::config('s3fs.settings')->get();
   if (!\Drupal::service('s3fs')->validate($config)) {
-    // @todo use drush_log or drush_error instead
-    drupal_set_message(
-      t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.'),
-      'error'
+    return drush_set_error(
+      dt('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
     );
-    return;
-  }
-  // @todo It shouldn't be necessary this, you can activate after the migration.
-  if (empty(Settings::get('s3fs.use_s3_for_public')) && empty(Settings::get('s3fs.use_s3_for_private'))) {
-    drupal_set_message(
-      t('S3 File System is not configured to take over any other file systems.')
-    );
-    return;
   }
 
-  \Drupal::service('s3fs')->copyFileSystemToS3($config, 'public');
+  if ($scheme == 'all' || $scheme == 'public') {
+    drush_log(dt('Starting @scheme scheme', array('@scheme' => 'public')), LogLevel::OK);
+    \Drupal::service('s3fs')->copyFileSystemToS3($config, 'public');
+  }
 
-  if (Settings::get('file_private_path')) {
-    \Drupal::service('s3fs')->copyFileSystemToS3($config, 'private');
+  if ($scheme == 'all' || $scheme == 'private') {
+    if (Settings::get('file_private_path')) {
+      drush_log(dt('Starting @scheme scheme', array('@scheme' => 'private')), LogLevel::OK);
+      \Drupal::service('s3fs')->copyFileSystemToS3($config, 'private');
+    }
+    else {
+      drush_log(dt('Scheme @scheme is not properly configured, you must enable this scheme in your settings.php', array('@scheme' => 'private')), LogLevel::WARNING);
+    }
   }
 }

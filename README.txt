@@ -72,6 +72,10 @@ CONFIGURATION
     Example:
     $settings['s3fs.use_s3_for_public'] = TRUE;
 
+COPY LOCAL FILES TO S3
+----------------------
+@todo complete
+
   * You are strongly encouraged to use the drush command "drush s3fs-copy-local"
     to do this, as it will copy all the files into the correct subfolders in your
     bucket, according to your s3fs configuration, and will write them to the
