@@ -175,7 +175,7 @@ class S3fsService {
    * @param $scheme
    *   A variable defining which scheme (Public or Private) to copy.
    */
-  function copyFileSystemToS3($config, $scheme) {
+  public function copyFileSystemToS3($config, $scheme) {
     if ($scheme == 'public') {
       $source_folder = realpath(PublicStream::basePath());
       $target_folder = !empty($config['public_folder']) ? $config['public_folder'] . '/' : 's3fs-public/';
@@ -220,7 +220,7 @@ class S3fsService {
    * @return array
    *   Array of file paths.
    */
-  function dirScan($dir) {
+  public function dirScan($dir) {
     $output = [];
     $files = scandir($dir);
     foreach ($files as $file) {
