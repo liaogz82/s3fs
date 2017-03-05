@@ -14,7 +14,7 @@ use Drupal\s3fs\StreamWrapper\S3fsStream;
 /**
  * Defines a S3fsService service.
  */
-class S3fsService {
+class S3fsService implements S3fsServiceInterface {
 
   use StringTranslationTrait;
 
