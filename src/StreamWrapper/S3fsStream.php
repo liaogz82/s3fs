@@ -234,7 +234,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   The empty string. Since this is a remote stream wrapper,
    *   it has no directory path.
    *
-   * @see LocalStream::getDirectoryPath()
+   * @see \Drupal\Core\File\LocalStream::getDirectoryPath()
    */
   public function getDirectoryPath() {
     return '';
@@ -538,14 +538,19 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * This wrapper does not support touch(), chmod(), chown(), or chgrp().
    *
-   * Always returns FALSE.
+   * Manual recommends return FALSE for not implemented options, but Drupal
+   * require TRUE in some cases like chmod for avoid watchdog erros.
+   *
+   * Returns FALSE if the option is not included in bypassed_options array
+   * otherwise, TRUE.
    *
    * @see http://php.net/manual/en/streamwrapper.stream-metadata.php
+   * @see \Drupal\Core\File\FileSystem::chmod()
    */
   public function stream_metadata($uri, $option, $value) {
-    return FALSE;
+    $bypassed_options = array(STREAM_META_ACCESS);
+    return in_array($option, $bypassed_options);
   }
-
 
   /**
    * {@inheritdoc}
