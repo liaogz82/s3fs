@@ -7,6 +7,7 @@ use Aws\S3\S3Client;
 use Aws\S3\StreamWrapper;
 use Aws\S3\S3ClientInterface;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Link;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -41,6 +42,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   /** @var \Aws\S3\S3Client The AWS SDK for PHP S3Client object */
   protected $s3 = NULL;
 
+  /** @var \Drupal\s3fs\S3fsServiceInterface The S3fs Service */
+  protected $s3fs = NULL;
+
   /** @var string The opened protocol (e.g., "s3") */
   private $protocol = 's3';
 
@@ -70,6 +74,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * Creates the \Aws\S3\S3Client client object and activates the options
    * specified on the S3 File System Settings page.
+   *
+   * @throws \Drupal\s3fs\S3fsException
    */
   public function __construct() {
     // Since S3fsStreamWrapper is always constructed with the same inputs (the
@@ -86,10 +92,14 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->torrents = $settings['torrents'];
       $this->presignedURLs = $settings['presignedURLs'];
       $this->saveas = $settings['saveas'];
+      $this->s3fs = $settings['s3fs'];
       $this->s3 = $this->getClient();
       $this->register($this->s3);
       return;
     }
+
+    // @todo Use dependency injection
+    $this->s3fs = \Drupal::service('s3fs');
 
     $config = \Drupal::config('s3fs.settings');
     foreach ($config->get() as $prop => $value) {
@@ -190,6 +200,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $settings['torrents'] = $this->torrents;
     $settings['presignedURLs'] = $this->presignedURLs;
     $settings['saveas'] = $this->saveas;
+    $settings['s3fs'] = $this->s3fs;
   }
 
   private function getClient() {
@@ -706,7 +717,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       return (bool) $test_metadata['dir'];
     }
 
-    $metadata = $this->convertMetadata($uri, []);
+    $metadata = $this->s3fs->convertMetadata($uri, []);
     $this->_write_cache($metadata);
 
     // If the STREAM_MKDIR_RECURSIVE option was specified, also create all the
@@ -973,7 +984,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   protected function _s3fs_get_object($uri) {
     // For the root directory, return metadata for a generic folder.
     if (file_uri_target($uri) == '') {
-      return $this->convertMetadata('/', []);
+      return $this->s3fs->convertMetadata('/', []);
     }
 
     // Trim any trailing '/', in case this is a folder request.
@@ -1041,7 +1052,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
           ->execute()
           ->fetchAssoc();
 
-        $cache->set($cid, $record);
+        $cache->set($cid, $record, Cache::PERMANENT, [S3FS_CACHE_TAG]);
         $lock->release($cid);
       }
     }
@@ -1151,7 +1162,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       return FALSE;
     }
 
-    return $this->convertMetadata($uri, $result);
+    return $this->s3fs->convertMetadata($uri, $result);
   }
 
   /**
@@ -1195,56 +1206,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     return $new_url;
   }
 
-  /**
-   * Convert file metadata returned from S3 into a metadata cache array.
-   *
-   * @param string $uri
-   *   The uri of the resource.
-   * @param array $s3_metadata
-   *   An array containing the collective metadata for the object in S3.
-   *   The caller may send an empty array here to indicate that the returned
-   *   metadata should represent a directory.
-   *
-   * @return array
-   *   A file metadata cache array.
-   */
-  protected function convertMetadata($uri, $s3_metadata) {
-    // Need to fill in a default value for everything, so that DB calls
-    // won't complain about missing fields.
-    $metadata = [
-      'uri' => $uri,
-      'filesize' => 0,
-      'timestamp' => REQUEST_TIME,
-      'dir' => 0,
-      'version' => '',
-    ];
 
-    if (empty($s3_metadata)) {
-      // The caller wants directory metadata.
-      $metadata['dir'] = 1;
-    }
-    else {
-      // The filesize value can come from either the Size or ContentLength
-      // attribute, depending on which AWS API call built $s3_metadata.
-      if (isset($s3_metadata['ContentLength'])) {
-        $metadata['filesize'] = $s3_metadata['ContentLength'];
-      }
-      else {
-        if (isset($s3_metadata['Size'])) {
-          $metadata['filesize'] = $s3_metadata['Size'];
-        }
-      }
-
-      if (isset($s3_metadata['LastModified'])) {
-        $metadata['timestamp'] = date('U', strtotime($s3_metadata['LastModified']));
-      }
-
-      if (isset($s3_metadata['VersionId'])) {
-        $metadata['version'] = $s3_metadata['VersionId'];
-      }
-    }
-    return $metadata;
-  }
 
   /**
    * {@inheritdoc}

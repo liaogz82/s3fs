@@ -2,10 +2,13 @@
 
 namespace Drupal\s3fs;
 
+use ArrayIterator;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Database\SchemaObjectExistsException;
 use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\StreamWrapper\PublicStream;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -47,6 +50,8 @@ class S3fsService implements S3fsServiceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Validate the S3fs config.
    *
    * @param $config
@@ -105,6 +110,8 @@ class S3fsService implements S3fsServiceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Sets up the S3Client object.
    * For performance reasons, only one S3Client object will ever be created
    * within a single request.
@@ -168,6 +175,8 @@ class S3fsService implements S3fsServiceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Copies all the local files from the specified file system into S3.
    *
    * @param array $config
@@ -210,6 +219,8 @@ class S3fsService implements S3fsServiceInterface {
   }
 
   /**
+   * {@inheritdoc}
+   *
    * Scans a given directory.
    *
    * @param $dir
@@ -241,6 +252,240 @@ class S3fsService implements S3fsServiceInterface {
       }
     }
     return $output;
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * Refreshes the metadata cache.
+   *
+   * Iterates over the full list of objects in the s3fs_root_folder within S3
+   * bucket (or the entire bucket, if no root folder has been set), caching
+   * their metadata in the database.
+   *
+   * It then caches the ancestor folders for those files, since folders are not
+   * normally stored as actual objects in S3.
+   *
+   * @param array $config
+   *   An s3fs configuration array.
+   */
+  public function refreshCache($config) {
+    $s3 = $this->getAmazonS3Client($config);
+
+    // Set up the iterator that will loop over all the objects in the bucket.
+    $file_metadata_list = array();
+    $iterator_args = array('Bucket' => $config['bucket']);
+    if (!empty($config['root_folder'])) {
+      // If the root_folder option has been set, retrieve from S3 only those files
+      // which reside in the root folder.
+      $iterator_args['Prefix'] = "{$config['root_folder']}/";
+
+    }
+    // Create an iterator that will emit all of the objects matching the
+    // key prefix.
+    $versions = $s3->ListObjectVersions($iterator_args);
+    $v = $versions->get('Versions');
+    $iterator = new ArrayIterator($v);
+
+    // The $folders array is an associative array keyed by folder paths, which
+    // is constructed as each filename is written to the DB. After all the files
+    // are written, the folder paths are converted to metadata and written.
+    $folders = array();
+    // Start by gathering all the existing folders. If we didn't do this, empty
+    // folders would be lost, because they'd have no files from which to rebuild
+    // themselves.
+    $existing_folders = \Drupal::database()->select('s3fs_file', 's')
+      ->fields('s', array('uri'))
+      ->condition('dir', 1, '=');
+    foreach ($existing_folders->execute()->fetchCol(0) as $folder_uri) {
+      $folders[$folder_uri] = TRUE;
+    }
+
+    // Create the temp table, into which all the refreshed data will be written.
+    // After the full refresh is complete, the temp table will be swapped with
+    // the real one.
+    module_load_install('s3fs');
+    $schema = s3fs_schema();
+    try {
+      \Drupal::database()->schema()->dropTable('s3fs_file_temp');
+      \Drupal::database()->schema()->createTable('s3fs_file_temp', $schema['s3fs_file']);
+    }
+    catch (SchemaObjectExistsException $e) {
+      // The table already exists, so we can simply truncate it to start fresh.
+      \Drupal::database()->truncate('s3fs_file_temp')->execute();
+    }
+
+    foreach ($iterator as $s3_metadata) {
+      $key = $s3_metadata['Key'];
+      // The root folder is an impementation detail that only appears on S3.
+      // Files' URIs are not aware of it, so we need to remove it beforehand.
+      if (!empty($config['root_folder'])) {
+        $key = str_replace("{$config['root_folder']}/", '', $key);
+      }
+
+      // Figure out the scheme based on the key's folder prefix.
+      $public_folder_name = !empty($config['public_folder']) ? $config['public_folder'] : 's3fs-public';
+      $private_folder_name = !empty($config['private_folder']) ? $config['private_folder'] : 's3fs-private';
+      if (strpos($key, "$public_folder_name/") === 0) {
+        // Much like the root folder, the public folder name must be removed from URIs.
+        $key = str_replace("$public_folder_name/", '', $key);
+        $uri = "public://$key";
+      }
+      else if (strpos($key, "$private_folder_name/") === 0) {
+        $key = str_replace("$private_folder_name/", '', $key);
+        $uri = "private://$key";
+      }
+      else {
+        // No special prefix means it's an s3:// file.
+        $uri = "s3://$key";
+      }
+
+      if ($uri[strlen($uri) - 1] == '/') {
+        // Treat objects in S3 whose filenames end in a '/' as folders.
+        // But don't store the '/' itself as part of the folder's uri.
+        $folders[rtrim($uri, '/')] = TRUE;
+      }
+      else {
+        // Only store the metadata for the latest version of the file.
+        if (isset($s3_metadata['IsLatest']) && !$s3_metadata['IsLatest']) {
+          continue;
+        }
+        // Files with no StorageClass are actually from the DeleteMarkers list,
+        // rather then the Versions list. They represent a file which has been
+        // deleted, so don't cache them.
+        if (!isset($s3_metadata['StorageClass'])) {
+          continue;
+        }
+        // Buckets with Versioning disabled set all files' VersionIds to "null".
+        // If we see that, unset VersionId to prevent "null" from being written
+        // to the DB.
+        if (isset($s3_metadata['VersionId']) && $s3_metadata['VersionId'] == 'null') {
+          unset($s3_metadata['VersionId']);
+        }
+        $file_metadata_list[] = $this->convertMetadata($uri, $s3_metadata);
+      }
+    }
+
+    // The event listener doesn't fire after the last page is done, so we have
+    // to write the last page of metadata manually.
+    $this->writeTemporaryMetadata($file_metadata_list, $folders);
+
+    // Now that the $folders array contains all the ancestors of every file in
+    // the cache, as well as the existing folders from before the refresh,
+    // write those folders to the DB.
+    if ($folders) {
+      $insert_query = \Drupal::database()->insert('s3fs_file_temp')
+        ->fields(array('uri', 'filesize', 'timestamp', 'dir', 'version'));
+      foreach ($folders as $folder_uri => $ph) {
+        $metadata = $this->convertMetadata($folder_uri, array());
+        $insert_query->values($metadata);
+      }
+      // @todo: If this throws an integrity constraint violation, then the user's
+      // S3 bucket has objects that represent folders using a different scheme
+      // than the one we account for above. The best solution I can think of is
+      // to convert any "files" in s3fs_file_temp which match an entry in the
+      // $folders array (which would have been added in _s3fs_write_metadata())
+      // to directories.
+      $insert_query->execute();
+    }
+
+    // Swap the temp table with the real table.
+    \Drupal::database()->schema()->renameTable('s3fs_file', 's3fs_file_old');
+    \Drupal::database()->schema()->renameTable('s3fs_file_temp', 's3fs_file');
+    \Drupal::database()->schema()->dropTable('s3fs_file_old');
+
+    // Clear every s3fs entry in the Drupal cache.
+    Cache::invalidateTags([S3FS_CACHE_TAG]);
+
+    drupal_set_message($this->t('S3 File System cache refreshed.'));
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * Convert file metadata returned from S3 into a metadata cache array.
+   *
+   * @param string $uri
+   *   The uri of the resource.
+   * @param array $s3_metadata
+   *   An array containing the collective metadata for the object in S3.
+   *   The caller may send an empty array here to indicate that the returned
+   *   metadata should represent a directory.
+   *
+   * @return array
+   *   A file metadata cache array.
+   */
+  public function convertMetadata($uri, $s3_metadata) {
+    // Need to fill in a default value for everything, so that DB calls
+    // won't complain about missing fields.
+    $metadata = [
+      'uri' => $uri,
+      'filesize' => 0,
+      'timestamp' => REQUEST_TIME,
+      'dir' => 0,
+      'version' => '',
+    ];
+
+    if (empty($s3_metadata)) {
+      // The caller wants directory metadata.
+      $metadata['dir'] = 1;
+    }
+    else {
+      // The filesize value can come from either the Size or ContentLength
+      // attribute, depending on which AWS API call built $s3_metadata.
+      if (isset($s3_metadata['ContentLength'])) {
+        $metadata['filesize'] = $s3_metadata['ContentLength'];
+      }
+      else {
+        if (isset($s3_metadata['Size'])) {
+          $metadata['filesize'] = $s3_metadata['Size'];
+        }
+      }
+
+      if (isset($s3_metadata['LastModified'])) {
+        $metadata['timestamp'] = date('U', strtotime($s3_metadata['LastModified']));
+      }
+
+      if (isset($s3_metadata['VersionId'])) {
+        $metadata['version'] = $s3_metadata['VersionId'];
+      }
+    }
+    return $metadata;
+  }
+
+  /**
+   * Writes metadata to the temp table in the database.
+   *
+   * @param array $file_metadata_list
+   *   An array passed by reference, which contains the current page of file
+   *   metadata. This function empties out $file_metadata_list at the end.
+   * @param array $folders
+   *   An associative array keyed by folder name, which is populated with the
+   *   ancestor folders of each file in $file_metadata_list.
+   */
+  private function writeTemporaryMetadata(&$file_metadata_list, &$folders) {
+    if ($file_metadata_list) {
+      $insert_query = \Drupal::database()->insert('s3fs_file_temp')
+        ->fields(array('uri', 'filesize', 'timestamp', 'dir', 'version'));
+
+      foreach ($file_metadata_list as $metadata) {
+        // Write the file metadata to the DB.
+        $insert_query->values($metadata);
+
+        // Add the ancestor folders of this file to the $folders array.
+        $uri = \Drupal::service('file_system')->dirname($metadata['uri']);
+        $root = \Drupal::service('file_system')->uriScheme($uri) . '://';
+        // Loop through each ancestor folder until we get to the root uri.
+        while ($uri != $root) {
+          $folders[$uri] = TRUE;
+          $uri = \Drupal::service('file_system')->dirname($uri);
+        }
+      }
+      $insert_query->execute();
+    }
+
+    // Empty out the file array, so it can be re-filled by the next request.
+    $file_metadata_list = array();
   }
 
 }

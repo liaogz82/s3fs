@@ -33,7 +33,7 @@ class ActionsForm extends FormBase {
       ),
       '#title' => $this->t('File Metadata Cache'),
     );
-    $refresh_description = '<b>Not implemented yet.</b> ' . $this->t(
+    $refresh_description =  $this->t(
       "This button queries S3 for the metadata of <i><b>all</b></i> the files in your site's bucket (unless you use the
     Root Folder option), and saves it to the database. This may take a while for buckets with many thousands of files. <br>
     It should only be necessary to use this button if you've just installed S3 File System and you need to cache all the
@@ -50,9 +50,12 @@ class ActionsForm extends FormBase {
 //          '#edit-refresh {margin-bottom: 0; margin-top: 1em;} div.refresh {margin-bottom: 1em;}' => array('type' => 'inline')
 //        ),
       ),
-      // @todo Do in refresh cache issue
-      '#disabled' => TRUE,
-      '#submit' => array('_s3fs_refresh_cache_submit'),
+      '#validate' => array(
+        array($this, 'refreshCacheValidateForm'),
+      ),
+      '#submit' => array(
+        array($this, 'refreshCacheSubmitForm')
+      ),
     );
 
     // @todo Add to Readme
@@ -101,6 +104,27 @@ class ActionsForm extends FormBase {
     return $form;
   }
 
+  public function refreshCacheValidateForm($form, FormStateInterface $form_state) {
+    $config = \Drupal::config('s3fs.settings')->get();
+    if (!\Drupal::service('s3fs')->validate($config)) {
+      $form_state->setError(
+        $form,
+        $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
+      );
+    }
+
+    // Use this values for submit step
+    $form_state->set('s3fs', array(
+      'config' => $config,
+    ));
+  }
+
+  public function refreshCacheSubmitForm(array &$form, FormStateInterface $form_state) {
+    $s3fs_storage = $form_state->get('s3fs');
+    $config = $s3fs_storage['config'];
+    \Drupal::service('s3fs')->refreshCache($config);
+  }
+
   public function copyLocalValidateForm($form, FormStateInterface $form_state) {
     $config = \Drupal::config('s3fs.settings')->get();
     if (!\Drupal::service('s3fs')->validate($config)) {
@@ -131,17 +155,17 @@ class ActionsForm extends FormBase {
       );
     }
 
-    // Use this calculated values for submit step
-    $form_state->set('copy_validate', array(
+    // Use this values for submit step
+    $form_state->set('s3fs', array(
       'config' => $config,
       'scheme' => $destination_scheme,
     ));
   }
 
   public function copyLocalSubmitForm(array &$form, FormStateInterface $form_state) {
-    $copy_validate_storage = $form_state->get('copy_validate');
-    $config = $copy_validate_storage['config'];
-    $scheme = $copy_validate_storage['scheme'];
+    $s3fs_storage = $form_state->get('s3fs');
+    $config = $s3fs_storage['config'];
+    $scheme = $s3fs_storage['scheme'];
     \Drupal::service('s3fs')->copyFileSystemToS3($config, $scheme);
   }
 

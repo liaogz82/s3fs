@@ -13,7 +13,13 @@ use Drush\Log\LogLevel;
 function s3fs_drush_command() {
   $items = array();
 
-  // @todo add options to filter by scheme publir or private
+  $items['s3fs-refresh-cache'] = array(
+    'description' => dt('Refresh the S3 File System metadata cache.'),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+    'aliases' => array('s3fs-rc'),
+    'callback' => 'drush_s3fs_refresh_cache',
+  );
+
   $items['s3fs-copy-local'] = array(
     'description' => 'Copy local files from your public and/or private file system(s) into your S3 bucket, if s3fs is configured to take them over.',
     'options' => array(
@@ -31,9 +37,21 @@ function s3fs_drush_command() {
 }
 
 /**
- *
- * Implements drush_hook_COMMAND().
- *
+ * Refreshes the file metadata cache.
+ */
+function drush_s3fs_refresh_cache() {
+  $config = \Drupal::config('s3fs.settings')->get();
+
+  if (!\Drupal::service('s3fs')->validate($config)) {
+    return drush_set_error(
+      dt('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
+    );
+  }
+
+  \Drupal::service('s3fs')->refreshCache($config);
+}
+
+/**
  * Copies all files from the local public/private filesystem folders into S3.
  *
  * @param string $scheme
