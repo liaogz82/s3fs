@@ -164,7 +164,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Hostname'),
       '#default_value' => $config->get('hostname'),
-      '#description' => $this->t('Custom service hostname, e.g. "objects.dreamhost.com".'),
+      '#description' => $this->t('Custom service hostname, e.g. "objects.dreamhost.com" without http(s) protocol.'),
       '#states' => [
         'visible' => [
           ':input[id=edit-s3fs-use-customhost]' => ['checked' => TRUE],

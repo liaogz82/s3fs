@@ -165,7 +165,7 @@ class S3fsService implements S3fsServiceInterface {
         $client_config['signature'] = 'v4';
       }
       if (!empty($config['use_customhost']) && !empty($config['hostname'])) {
-        $client_config['base_url'] = $config['hostname'];
+        $client_config['endpoint'] = ($config['use_https'] ? 'https://' : 'http://') . $config['hostname'];
       }
       $client_config['version'] = S3fsStream::API_VERSION;
       $s3 = new S3Client($client_config);
