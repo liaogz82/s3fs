@@ -204,14 +204,20 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   }
 
   private function getClient() {
-    return new S3Client([
+    $options = [
       'credentials' => [
         'key' => $this->config['access_key'],
         'secret' => $this->config['secret_key'],
       ],
       'region' => $this->config['region'],
       'version' => static::API_VERSION,
-    ]);
+    ];
+
+    if (!empty($this->config['use_customhost'] && !empty($this->config['hostname']))) {
+      $options['endpoint'] = ($this->config['use_https'] ? 'https://' : 'http://') . $this->config['hostname'];
+    }
+
+    return new S3Client($options);
   }
 
   /**
