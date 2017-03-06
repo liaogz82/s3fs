@@ -28,9 +28,9 @@ INSTALLATION
     $config['s3fs.settings']['access_key'] = 'YOUR ACCESS KEY';
     $config['s3fs.settings']['secret_key'] = 'YOUR SECRET KEY';
 
-  * Configure your setttings for S3 File System (including your S3 bucket name) at
+  * Configure your settings for S3 File System (including your S3 bucket name) at
     /admin/config/media/s3fs. You can input your AWS credentials on this page as
-    well, but using the $config array is reccomended.
+    well, but using the $config array is recommended.
 
   * With the settings saved, go to /admin/config/media/s3fs/actions to refresh the
     file metadata cache. This will copy the filenames and attributes for every
@@ -73,7 +73,6 @@ CONFIGURATION
 
 COPY LOCAL FILES TO S3
 ----------------------
-@todo complete
 
   * You are strongly encouraged to use the drush command "drush s3fs-copy-local"
     to do this, as it will copy all the files into the correct subfolders in your
@@ -82,6 +81,19 @@ COPY LOCAL FILES TO S3
     the S3FS Actions page (admin/config/media/s3fs/actions), though the copy
     operation may fail if you have a lot of files, or very large files. The drush
     command will cleanly handle any combination of files.
+
+  * This feature change from 7.x version, now it's possible copy local files to
+    s3 without activate in settings.php use_s3_for_public or use_s3_for_private.
+    Activate this before migration, you will have unavailable all your images
+    during the process.
+    Activate this after migration, you shouldn't upload images during the process
+    and when the process finished, replace with a simple query all s3:// by
+    public:// if the files are public.
+    This process is only useful if you have enabled public or private, after or
+    before the migration, but it should be enabled in one of them cases.
+    You can do your custom migrating process implements S3fsServiceInterface or
+    extends S3fsService and use your custom service class in a ServiceProvider
+    (see S3fsServiceProvider).
 
 
 TROUBLESHOOTING
@@ -168,21 +180,21 @@ KNOWN ISSUES
     If you tried that options or know new issues, please create a new issue
     in https://www.drupal.org/project/issues/s3fs?version=8.x
 
-  * Some curl libraries, such as the one bundled with MAMP, do not come
-    with authoritative certificate files. See the following page for details:
-    http://dev.soup.io/post/56438473/If-youre-using-MAMP-and-doing-something
+      * Some curl libraries, such as the one bundled with MAMP, do not come
+        with authoritative certificate files. See the following page for details:
+        http://dev.soup.io/post/56438473/If-youre-using-MAMP-and-doing-something
 
-  * Because of a bizzare limitation regarding MySQL's maximum index length for
-    InnoDB tables, the maximum uri length that S3FS supports is 250 characters.
-    That includes the full path to the file in your bucket, as the full folder
-    path is part of the uri.
+      * Because of a bizzare limitation regarding MySQL's maximum index length for
+        InnoDB tables, the maximum uri length that S3FS supports is 250 characters.
+        That includes the full path to the file in your bucket, as the full folder
+        path is part of the uri.
 
-  * eAccelerator, a deprecated opcode cache plugin for PHP, is incompatible with
-    AWS SDK for PHP. eAccelerator will corrupt the configuration settings for
-    the SDK's s3 client object, causing a variety of different exceptions to be
-    thrown. If your server uses eAccelerator, it is highly recommended that you
-    replace it with a different opcode cache plugin, as its development was
-    abandoned several years ago.
+      * eAccelerator, a deprecated opcode cache plugin for PHP, is incompatible with
+        AWS SDK for PHP. eAccelerator will corrupt the configuration settings for
+        the SDK's s3 client object, causing a variety of different exceptions to be
+        thrown. If your server uses eAccelerator, it is highly recommended that you
+        replace it with a different opcode cache plugin, as its development was
+        abandoned several years ago.
 
 
 ACKNOWLEDGEMENT
