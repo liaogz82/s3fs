@@ -61,7 +61,6 @@ class ActionsForm extends FormBase {
       ),
     );
 
-    // @todo Add to Readme
     $form['copy_local'] = array(
       '#type' => 'fieldset',
       '#description' => $this->t(

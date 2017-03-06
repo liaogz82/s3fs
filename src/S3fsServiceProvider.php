@@ -26,9 +26,8 @@ class S3fsServiceProvider implements ServiceModifierInterface {
       $container->getDefinition('stream_wrapper.public')
         ->setClass('Drupal\s3fs\StreamWrapper\PublicS3fsStream');
     }
-    if (Settings::get('s3fs.use_s3_for_private')) {
+    if (Settings::get('s3fs.use_s3_for_private') && $container->hasDefinition('stream_wrapper.private')) {
       // Replace the private stream wrapper with S3fsStream.
-      // @todo Check if the definition exists
       $container->getDefinition('stream_wrapper.private')
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
     }
