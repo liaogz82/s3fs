@@ -106,12 +106,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->config[$prop] = $value;
     }
 
-    $this->s3 = $this->getClient();
-
-    $this->register($this->s3);
-    $this->context = stream_context_get_default();
-    stream_context_set_option($this->context, 's3', 'seekable', TRUE);
-
     if (empty($this->config['bucket'])) {
       $link = Link::fromTextAndUrl($this->t('configuration page'), Url::fromRoute('s3fs.admin_settings'));
       \Drupal::logger('S3 File System')
@@ -120,6 +114,12 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
         ]);
       throw new S3fsException('Your AmazonS3 bucket name is not configured. Please visit the configuration page.');
     }
+
+    $this->s3 = $this->getClient();
+
+    $this->register($this->s3);
+    $this->context = stream_context_get_default();
+    stream_context_set_option($this->context, 's3', 'seekable', TRUE);
 
     // Always use HTTPS when the page is being served via HTTPS, to avoid
     // complaints from the browser about insecure content.
@@ -1036,16 +1036,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   An array of metadata if the $uri is in the cache. Otherwise, FALSE.
    */
   protected function _read_cache($uri) {
-    // Since public:///blah.jpg and public://blah.jpg refer to the same file
-    // (a file named blah.jpg at the root of the file system), we'll sometimes
-    // receive files with a /// in their URI. This messes with our caching
-    // scheme, though, so we need to remove the extra /.
-    if (strpos($uri, 'public:///') === 0) {
-      $uri = preg_replace('^public://[/]+^', 'public://', $uri);
-    }
-    elseif (strpos($uri, 'private:///') === 0) {
-      $uri = preg_replace('^private://[/]+^', 'private://', $uri);
-    }
+    $uri = file_stream_wrapper_uri_normalize($uri);
 
     // Cache DB reads so that faster caching mechanisms (e.g. redis, memcache)
     // can further improve performance.
@@ -1093,16 +1084,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   Exceptions which occur in the database call will percolate.
    */
   protected function _write_cache($metadata) {
-    // Since public:///blah.jpg and public://blah.jpg refer to the same file
-    // (a file named blah.jpg at the root of the file system), we'll sometimes
-    // receive files with a /// in their URI. This messes with our caching
-    // scheme, though, so we need to remove the extra /.
-    if (strpos($metadata['uri'], 'public:///') === 0) {
-      $metadata['uri'] = preg_replace('^public://[/]+^', 'public://', $metadata['uri']);
-    }
-    else if (strpos($metadata['uri'], 'private:///') === 0) {
-      $metadata['uri'] = preg_replace('^private://[/]+^', 'private://', $metadata['uri']);
-    }
+    $metadata['uri'] = file_stream_wrapper_uri_normalize($metadata['uri']);
 
     \Drupal::database()->merge('s3fs_file')
       ->key(['uri' => $metadata['uri']])
@@ -1224,8 +1206,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     }
     return $new_url;
   }
-
-
 
   /**
    * {@inheritdoc}
