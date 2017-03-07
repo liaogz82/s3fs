@@ -11,7 +11,7 @@ use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Defines a form that configures devel settings.
+ * Defines a form that configures s3fs settings.
  */
 class SettingsForm extends ConfigFormBase {
 
@@ -415,6 +415,5 @@ class SettingsForm extends ConfigFormBase {
 
     parent::submitForm($form, $form_state);
   }
-
 
 }
