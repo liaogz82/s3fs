@@ -203,15 +203,28 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $settings['s3fs'] = $this->s3fs;
   }
 
+  /**
+   * {@inheritdoc}
+   *
+   * @todo refactor with S3fsService::getAmazonS3Client()
+   */
   private function getClient() {
     $options = [
-      'credentials' => [
-        'key' => $this->config['access_key'],
-        'secret' => $this->config['secret_key'],
-      ],
       'region' => $this->config['region'],
       'version' => static::API_VERSION,
     ];
+
+    if ($this->config['use_instance_profile']) {
+      $options['default_cache_config'] = $this->config['default_cache_config'];
+    }
+    else {
+      $options += [
+        'credentials' => [
+          'key' => $this->config['access_key'],
+          'secret' => $this->config['secret_key'],
+        ],
+      ];
+    }
 
     if (!empty($this->config['use_customhost'] && !empty($this->config['hostname']))) {
       $options['endpoint'] = ($this->config['use_https'] ? 'https://' : 'http://') . $this->config['hostname'];
