@@ -49,8 +49,8 @@ function hook_s3fs_url_settings_alter(&$url_settings, $s3_file_path) {
 
   // An example of adding a custom GET argument to all S3 URLs that
   // records the name of the currently logged in user.
-  global $user;
-  $url_settings['custom_GET_args']['x-user'] = $user->name;
+  $account = Drupal::currentUser();
+  $url_settings['custom_GET_args']['x-user'] = $account->getAccountName();
 }
 
 /**

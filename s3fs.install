@@ -140,8 +140,8 @@ function s3fs_schema() {
  * See https://www.drupal.org/node/2305017 for more info.
  */
 function s3fs_install() {
-
   $options = Database::getConnectionInfo('default');
+
   switch ($options['default']['driver']) {
     case 'pgsql':
       // Postgres uses binary collation by default.
