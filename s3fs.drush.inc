@@ -21,15 +21,16 @@ function s3fs_drush_command() {
   );
 
   $items['s3fs-copy-local'] = array(
-    'description' => 'Copy local files from your public and/or private file system(s) into your S3 bucket, if s3fs is configured to take them over.',
+    'description' => dt('Copy local files from your public and/or private file system(s) into your S3 bucket, if s3fs is configured to take them over.'),
     'options' => array(
-      'scheme' => 'Limit the process to an specific scheme. E.g. (public or private), all by default.',
+      'scheme' => dt('Limit the process to an specific scheme. E.g. (public or private), all by default.'),
     ),
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
     'aliases' => array('s3fs-cl'),
     'callback' => 'drush_s3fs_copy_local',
     'examples' => array(
-      'drush s3fs-copy-local' => 'Copy local files from your public and/or private file system(s) into your S3 bucket.',
+      'drush s3fs-copy-local' => dt('Copy local files from your public and/or private file system(s) into your S3 bucket.'),
+      'drush s3fs-copy-local --scheme=public' => dt('Copy local files only from your public file system into your S3 bucket.'),
     ),
   );
 
