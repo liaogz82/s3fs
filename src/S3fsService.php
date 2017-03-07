@@ -208,8 +208,12 @@ class S3fsService implements S3fsServiceInterface {
     $file_paths = $this->dirScan($source_folder);
     foreach ($file_paths as $path) {
       $relative_path = $target_folder . str_replace($source_folder . '/', '', $path);
-      // @todo Avoid use print, check if is drush and use drush log
-      print "Copying $scheme://$relative_path into S3...\n";
+
+      // Print messages only for CLI requests.
+      if (PHP_SAPI === 'cli') {
+        print "Copying $scheme://$relative_path into S3...\n";
+      }
+
       // Finally get to make use of S3fsStreamWrapper's "S3 is actually a local
       // file system. No really!" functionality.
       copy($path, "s3://$relative_path");
