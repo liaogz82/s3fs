@@ -6,6 +6,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\StreamWrapper\PublicStream;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -246,6 +247,29 @@ class SettingsForm extends ConfigFormBase {
       '#description' => $this->t(
         'If this box is checked, s3fs will NOT rewrite the CSS/JS file paths to "/s3fs-(css|js)/...". Instead, they will
       be placed on the page with their regular CDN name. Only enable this option if you <b>know</b> you need it!'
+      ),
+      '#states' => [
+        'visible' => [
+          ':input[id=edit-use-s3-for-public]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
+    $php_storage = Settings::get('php_storage');
+    $twig_storage = !empty($php_storage['twig']['directory'])
+      ? $php_storage['twig']['directory']
+      : PublicStream::basePath() . '/php';
+
+    $advanced['twig_storage'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Twig compiled storage folder'),
+      '#default_value' => $twig_storage,
+      '#disabled' => TRUE,
+      '#description' => $this->t(
+        '<b>PLEASE NOTE:</b> If you intend use s3fs for public:// you should change your php twig storage folder to a local
+        directory, php twig files in S3 produce latency and security issues (these files would be public). Please change
+        the php_storage settings in your setting.php and choose a directory, out of docroot recommended. Example:<br>
+        <em>$settings[\'php_storage\'][\'twig\'][\'directory\'] = \'../storage/php\';</em>'
       ),
       '#states' => [
         'visible' => [

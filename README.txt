@@ -71,6 +71,16 @@ CONFIGURATION
     Example:
     $settings['s3fs.use_s3_for_public'] = TRUE;
 
+  * If you use s3fs for public, you should change your php twig storage folder to
+    a local directory, php twig files in S3 produce latency and security issues
+    (these files would be public). Please change the php_storage settings in your
+    setting.php and choose a directory, out of docroot recommended.
+    Example:
+    $settings['php_storage']['twig']['directory'] = '../storage/php';
+
+    If you have a multiple backends you may use a NAS to store it or other shared
+    storage system with your others backends.
+
 COPY LOCAL FILES TO S3
 ----------------------
 
