@@ -195,10 +195,14 @@ class S3fsService implements S3fsServiceInterface {
       $source_folder = PrivateStream::basePath() ? PrivateStream::basePath() : '';
       $source_folder_real = realpath($source_folder);
       if (empty($source_folder) || empty($source_folder_real)) {
-        drupal_set_message('Private file system base path is unknown. Unable to perform S3 copy.', 'error');
+        drupal_set_message($this->t('Private file system base path is unknown. Unable to perform S3 copy.'), 'error');
         return;
       }
       $target_folder = !empty($config['private_folder']) ? $config['private_folder'] . '/' : 's3fs-private/';
+    }
+    else {
+      drupal_set_message($this->t('Scheme @scheme is not allowed', ['%scheme' => $scheme]), 'error');
+      return;
     }
 
     if (!empty($config['root_folder'])) {
