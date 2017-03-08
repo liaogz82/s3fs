@@ -643,9 +643,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * If $to_uri exists, this file will be overwritten. This behavior is
    * identical to the PHP rename() function.
    *
-   * @param string $path_from
+   * @param string $from_uri
    *   The uri of the file to be renamed.
-   * @param string $path_to
+   * @param string $to_uri
    *   The new uri for the file.
    *
    * @return bool
@@ -653,20 +653,20 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * @see http://php.net/manual/en/streamwrapper.rename.php
    */
-  public function rename($path_from, $path_to) {
+  public function rename($from_uri, $to_uri) {
     // Set access for new item in stream context.
-    if (\Drupal::service('file_system')->uriScheme($path_from) != 'private') {
+    if (\Drupal::service('file_system')->uriScheme($from_uri) != 'private') {
       stream_context_set_option($this->context, 's3', 'ACL', 'public-read');
     }
 
     // If parent succeeds in renaming, updated local metadata and cache.
-    if (parent::rename($this->convertUriToKeyedPath($path_from), $this->convertUriToKeyedPath($path_to))) {
-      $metadata = $this->_read_cache($path_from);
-      $metadata['uri'] = $path_to;
+    if (parent::rename($this->convertUriToKeyedPath($from_uri), $this->convertUriToKeyedPath($to_uri))) {
+      $metadata = $this->_read_cache($from_uri);
+      $metadata['uri'] = $to_uri;
       $this->_write_cache($metadata);
-      $this->_delete_cache($path_from);
-      clearstatcache(TRUE, $path_from);
-      clearstatcache(TRUE, $path_to);
+      $this->_delete_cache($from_uri);
+      clearstatcache(TRUE, $from_uri);
+      clearstatcache(TRUE, $to_uri);
       return TRUE;
     }
     return FALSE;
@@ -813,10 +813,12 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   An array with file status, or FALSE in case of an error.
    *
    * @see http://php.net/manual/en/streamwrapper.url-stat.php
+   *
+   * @todo see if we can use url_stat from Aws\S3\StreamWrapper
    */
   public function url_stat($uri, $flags) {
     $this->setUri($uri);
-    return $this->_stat($uri);
+    return $this->stat($uri);
   }
 
   /**
@@ -875,6 +877,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   The next filename, or FALSE if there are no more files in the directory.
    *
    * @see http://php.net/manual/en/streamwrapper.dir-readdir.php
+   *
+   * @todo see if we can use dir_readdir from Aws\S3\StreamWrapper
    */
   public function dir_readdir() {
     $entry = each($this->dir);
@@ -943,7 +947,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *
    * @see http://php.net/manual/en/streamwrapper.stream-stat.php
    */
-  protected function _stat($uri) {
+  protected function stat($uri) {
     $metadata = $this->_s3fs_get_object($uri);
     if ($metadata) {
       $stat = [];
