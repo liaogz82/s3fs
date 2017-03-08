@@ -765,7 +765,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.rmdir.php
    */
   public function rmdir($uri, $options) {
-    if (!$this->_path_is_dir($uri)) {
+    if (!$this->isDir($uri)) {
       return FALSE;
     }
 
@@ -838,7 +838,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.dir-opendir.php
    */
   public function dir_opendir($uri, $options = NULL) {
-    if (!$this->_path_is_dir($uri)) {
+    if (!$this->isDir($uri)) {
       return FALSE;
     }
 
@@ -988,7 +988,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return bool
    *   TRUE if the resource is a directory.
    */
-  protected function _path_is_dir($uri) {
+  protected function isDir($uri) {
     $metadata = $this->_s3fs_get_object($uri);
     return $metadata ? $metadata['dir'] : FALSE;
   }
