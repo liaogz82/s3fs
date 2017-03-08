@@ -339,7 +339,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // gets requested.
     $path_parts = explode('/', $s3_key);
     if ($path_parts[0] == 'styles' && substr($s3_key, -4) != '.css') {
-      if (!$this->_s3fs_get_object($this->uri)) {
+      if (!$this->getS3fsObject($this->uri)) {
 
         $args = $path_parts;
         array_shift($args);
@@ -453,9 +453,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
     // If this file is versioned, append the version number as a GET arg to
     // ensure that browser caches will be bypassed upon version changes.
-    $meta = $this->_read_cache($this->uri);
+    $meta = $this->readCache($this->uri);
     if (!empty($meta['version'])) {
-      $external_url = $this->_append_get_arg($external_url, $meta['version']);
+      $external_url = $this->appendGetArg($external_url, $meta['version']);
     }
 
     // Torrents can only be created for publicly-accessible files:
@@ -465,7 +465,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       foreach ($this->torrents as $blob) {
         if (preg_match("^$blob^", $s3_key)) {
           // You get a torrent URL by adding a "torrent" GET arg.
-          $external_url = $this->_append_get_arg($external_url, 'torrent');
+          $external_url = $this->appendGetArg($external_url, 'torrent');
           break;
         }
       }
@@ -474,7 +474,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // If another module added a 'custom_GET_args' array to the url settings, process it here.
     if (!empty($url_settings['custom_GET_args'])) {
       foreach ($url_settings['custom_GET_args'] as $name => $value) {
-        $external_url = $this->_append_get_arg($external_url, $name, $value);
+        $external_url = $this->appendGetArg($external_url, $name, $value);
       }
     }
     return $external_url;
@@ -628,7 +628,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $this->setUri($uri);
     $converted = $this->convertUriToKeyedPath($uri);
     if (parent::unlink($converted)) {
-      $this->_delete_cache($uri);
+      $this->deleteCache($uri);
       clearstatcache(TRUE, $uri);
       return TRUE;
     }
@@ -661,10 +661,10 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
     // If parent succeeds in renaming, updated local metadata and cache.
     if (parent::rename($this->convertUriToKeyedPath($from_uri), $this->convertUriToKeyedPath($to_uri))) {
-      $metadata = $this->_read_cache($from_uri);
+      $metadata = $this->readCache($from_uri);
       $metadata['uri'] = $to_uri;
-      $this->_write_cache($metadata);
-      $this->_delete_cache($from_uri);
+      $this->writeCache($metadata);
+      $this->deleteCache($from_uri);
       clearstatcache(TRUE, $from_uri);
       clearstatcache(TRUE, $to_uri);
       return TRUE;
@@ -731,13 +731,13 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // If this URI already exists in the cache, return TRUE if it's a folder
     // (so that recursive calls won't improperly report failure when they
     // reach an existing ancestor), or FALSE if it's a file (failure).
-    $test_metadata = $this->_read_cache($uri);
+    $test_metadata = $this->readCache($uri);
     if ($test_metadata) {
       return (bool) $test_metadata['dir'];
     }
 
     $metadata = $this->s3fs->convertMetadata($uri, []);
-    $this->_write_cache($metadata);
+    $this->writeCache($metadata);
 
     // If the STREAM_MKDIR_RECURSIVE option was specified, also create all the
     // ancestor folders of this uri, except for the root directory.
@@ -788,7 +788,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // If the folder is empty, it's eligible for deletion.
     if (empty($files)) {
       if (parent::rmdir($this->convertUriToKeyedPath($uri), $options)) {
-        $this->_delete_cache($uri);
+        $this->deleteCache($uri);
         clearstatcache(TRUE, $uri);
         return TRUE;
       }
@@ -924,8 +924,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    */
   public function writeUriToCache($uri) {
     if ($this->waitUntilFileExists($uri)) {
-      $metadata = $this->_get_metadata_from_s3($uri);
-      $this->_write_cache($metadata);
+      $metadata = $this->getS3Metadata($uri);
+      $this->writeCache($metadata);
       clearstatcache(TRUE, $uri);
     }
   }
@@ -948,7 +948,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.stream-stat.php
    */
   protected function stat($uri) {
-    $metadata = $this->_s3fs_get_object($uri);
+    $metadata = $this->getS3fsObject($uri);
     if ($metadata) {
       $stat = [];
       $stat[0] = $stat['dev'] = 0;
@@ -989,7 +989,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   TRUE if the resource is a directory.
    */
   protected function isDir($uri) {
-    $metadata = $this->_s3fs_get_object($uri);
+    $metadata = $this->getS3fsObject($uri);
     return $metadata ? $metadata['dir'] : FALSE;
   }
 
@@ -1004,7 +1004,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return array|bool
    *   An array if the $uri exists, otherwise FALSE.
    */
-  protected function _s3fs_get_object($uri) {
+  protected function getS3fsObject($uri) {
     // For the root directory, return metadata for a generic folder.
     if (file_uri_target($uri) == '') {
       return $this->s3fs->convertMetadata('/', []);
@@ -1014,17 +1014,17 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $uri = rtrim($uri, '/');
 
     // Check if this URI is in the cache.
-    $metadata = $this->_read_cache($uri);
+    $metadata = $this->readCache($uri);
 
     // If cache ignore is enabled, query S3 for all URIs which aren't in the
     // cache, and non-folder URIs which are.
     if (!empty($this->config['ignore_cache']) && !$metadata['dir']) {
       try {
-        // If _get_metadata_from_s3() returns FALSE, the file doesn't exist.
-        $metadata = $this->_get_metadata_from_s3($uri);
+        // If getS3Metadata() returns FALSE, the file doesn't exist.
+        $metadata = $this->getS3Metadata($uri);
       }
       catch (\Exception $e) {
-        return $this->_trigger_error($e->getMessage());
+        return $this->triggerError($e->getMessage());
       }
     }
     return $metadata;
@@ -1039,7 +1039,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return array
    *   An array of metadata if the $uri is in the cache. Otherwise, FALSE.
    */
-  protected function _read_cache($uri) {
+  protected function readCache($uri) {
     $uri = file_stream_wrapper_uri_normalize($uri);
 
     // Cache DB reads so that faster caching mechanisms (e.g. redis, memcache)
@@ -1057,7 +1057,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
         // Another request is building the variable cache. Wait, then re-run
         // this function
         $lock->wait($cid);
-        $record = $this->_read_cache($uri);
+        $record = $this->readCache($uri);
       }
       else {
         $record = \Drupal::database()->select('s3fs_file', 's')
@@ -1087,7 +1087,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @throws
    *   Exceptions which occur in the database call will percolate.
    */
-  protected function _write_cache($metadata) {
+  protected function writeCache($metadata) {
     $metadata['uri'] = file_stream_wrapper_uri_normalize($metadata['uri']);
 
     \Drupal::database()->merge('s3fs_file')
@@ -1119,7 +1119,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @throws
    *   Exceptions which occur in the database call will percolate.
    */
-  protected function _delete_cache($uri) {
+  protected function deleteCache($uri) {
     if (!is_array($uri)) {
       $uri = [$uri];
     }
@@ -1156,7 +1156,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   Any exception raised by the listObjects() S3 command will percolate
    *   out of this function.
    */
-  protected function _get_metadata_from_s3($uri) {
+  protected function getS3Metadata($uri) {
     $params = $this->getCommandParams($uri);
     try {
       $result = $this->s3->headObject($params);
@@ -1181,7 +1181,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return bool
    *   Always returns FALSE.
    */
-  protected function _trigger_error($errors, $flags = NULL) {
+  protected function triggerError($errors, $flags = NULL) {
     if ($flags != STREAM_URL_STAT_QUIET) {
       trigger_error(implode("\n", (array) $errors), E_USER_ERROR);
     }
@@ -1202,7 +1202,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return string
    *   The converted path GET argument.
    */
-  protected static function _append_get_arg($base_url, $name, $value = NULL) {
+  protected static function appendGetArg($base_url, $name, $value = NULL) {
     $separator = strpos($base_url, '?') === FALSE ? '?' : '&';
     $new_url = "{$base_url}{$separator}{$name}";
     if ($value !== NULL) {
