@@ -91,8 +91,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->presignedURLs = $settings['presignedURLs'];
       $this->saveas = $settings['saveas'];
       $this->s3fs = $settings['s3fs'];
-      // @todo ¿Use one client per request?
-      $this->s3 = $this->getClient();
+      $this->s3 = $settings['s3'];
       $this->register($this->s3);
       return;
     }
@@ -195,6 +194,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $settings['presignedURLs'] = $this->presignedURLs;
     $settings['saveas'] = $this->saveas;
     $settings['s3fs'] = $this->s3fs;
+    $settings['s3'] = $this->s3;
   }
 
   /**
