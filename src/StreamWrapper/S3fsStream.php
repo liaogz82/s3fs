@@ -782,8 +782,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   An array with file status, or FALSE in case of an error.
    *
    * @see http://php.net/manual/en/streamwrapper.url-stat.php
-   *
-   * @todo see if we can use url_stat from Aws\S3\StreamWrapper
    */
   public function url_stat($uri, $flags) {
     $this->setUri($uri);
@@ -846,8 +844,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    *   The next filename, or FALSE if there are no more files in the directory.
    *
    * @see http://php.net/manual/en/streamwrapper.dir-readdir.php
-   *
-   * @todo see if we can use dir_readdir from Aws\S3\StreamWrapper
    */
   public function dir_readdir() {
     $entry = each($this->dir);
