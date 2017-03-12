@@ -3,12 +3,10 @@
 namespace Drupal\s3fs\StreamWrapper;
 
 use Aws\CacheInterface;
-use Aws\S3\S3Client;
 use Aws\S3\StreamWrapper;
 use Aws\S3\S3ClientInterface;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\Cache;
-use Drupal\Core\Link;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
@@ -102,19 +100,13 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // @todo Use dependency injection
     $this->s3fs = \Drupal::service('s3fs');
 
-    // @todo we should validate $config once per request
     $config = \Drupal::config('s3fs.settings');
     foreach ($config->get() as $prop => $value) {
       $this->config[$prop] = $value;
     }
 
-    if (empty($this->config['bucket'])) {
-      $link = Link::fromTextAndUrl($this->t('configuration page'), Url::fromRoute('s3fs.admin_settings'));
-      \Drupal::logger('S3 File System')
-        ->error('Your AmazonS3 bucket name is not configured. Please visit the @config_page.', [
-          '@config_page' => $link->toString(),
-        ]);
-      throw new S3fsException('Your AmazonS3 bucket name is not configured. Please visit the configuration page.');
+    if (!$this->s3fs->validate($this->config)) {
+      throw new S3fsException('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.');
     }
 
     $this->s3 = $this->getClient();

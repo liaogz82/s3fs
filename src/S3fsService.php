@@ -94,6 +94,16 @@ class S3fsService implements S3fsServiceInterface {
       return FALSE;
     }
 
+    if (empty($config['bucket'])) {
+      if ($returnError) {
+        return [
+          'bucket',
+          $this->t('Your AmazonS3 bucket name is not configured.')
+        ];
+      }
+      return FALSE;
+    }
+
     if (!empty($config['use_customhost']) && empty($config['hostname'])) {
       if ($returnError) {
         $name = 'hostname';
