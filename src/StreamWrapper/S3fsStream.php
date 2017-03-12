@@ -299,8 +299,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // system/files/$path URL, which allows Drupal to restrict access
     // based on who's logged in.
     if (\Drupal::service('file_system')->uriScheme($this->uri) == 'private') {
-      return Url::fromUserInput("/system/files/$s3_key")
-        ->setAbsolute(TRUE)
+      return Url::fromRoute('system.private_file_download', ['filepath' => $s3_key], ['absolute' => TRUE])
         ->toString();
     }
 
