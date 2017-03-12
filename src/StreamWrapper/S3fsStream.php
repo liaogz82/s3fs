@@ -93,6 +93,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->presignedURLs = $settings['presignedURLs'];
       $this->saveas = $settings['saveas'];
       $this->s3fs = $settings['s3fs'];
+      // @todo ¿Use one client per request?
       $this->s3 = $this->getClient();
       $this->register($this->s3);
       return;
@@ -101,6 +102,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     // @todo Use dependency injection
     $this->s3fs = \Drupal::service('s3fs');
 
+    // @todo we should validate $config once per request
     $config = \Drupal::config('s3fs.settings');
     foreach ($config->get() as $prop => $value) {
       $this->config[$prop] = $value;
@@ -205,32 +207,9 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @todo refactor with S3fsService::getAmazonS3Client()
    */
   private function getClient() {
-    $options = [
-      'region' => $this->config['region'],
-      'version' => static::API_VERSION,
-    ];
-
-    if ($this->config['use_instance_profile']) {
-      $options['default_cache_config'] = $this->config['default_cache_config'];
-    }
-    else {
-      $options += [
-        'credentials' => [
-          'key' => $this->config['access_key'],
-          'secret' => $this->config['secret_key'],
-        ],
-      ];
-    }
-
-    if (!empty($this->config['use_customhost'] && !empty($this->config['hostname']))) {
-      $options['endpoint'] = ($this->config['use_https'] ? 'https://' : 'http://') . $this->config['hostname'];
-    }
-
-    return new S3Client($options);
+    return $this->s3fs->getAmazonS3Client($this->config);
   }
 
   /**

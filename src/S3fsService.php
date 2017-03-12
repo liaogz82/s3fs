@@ -62,6 +62,38 @@ class S3fsService implements S3fsServiceInterface {
    * @return Boolean/array
    */
   public function validate(array $config, $returnError = FALSE) {
+    if (!class_exists('Aws\S3\S3Client')) {
+      if ($returnError) {
+        return [
+          'form',
+          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.')
+        ];
+      }
+      return FALSE;
+    }
+    elseif (!$config['use_instance_profile'] && (!$config['secret_key'] || !$config['access_key'])) {
+      if ($returnError) {
+        return [
+          'form',
+          $this->t("Your AWS credentials have not been properly configured.
+          Please set them on the S3 File System admin/config/media/s3fs page or
+          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php.")
+        ];
+      }
+      return FALSE;
+    }
+    elseif ($config['use_instance_profile'] && empty($config['default_cache_config'])) {
+      if ($returnError) {
+        return [
+          'default_cache_config',
+          $this->t("Your AWS credentials have not been properly configured.
+          You are attempting to use instance profile credentials but you have not set a default cache location.
+          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php.")
+        ];
+      }
+      return FALSE;
+    }
+
     if (!empty($config['use_customhost']) && empty($config['hostname'])) {
       if ($returnError) {
         $name = 'hostname';
@@ -131,22 +163,6 @@ class S3fsService implements S3fsServiceInterface {
     // If the client hasn't been set up yet, or the config given to this call is
     // different from the previous call, (re)build the client.
     if (!isset($s3) || $static_config != $config) {
-
-      if (!class_exists('Aws\S3\S3Client')) {
-        throw new S3fsException(
-          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.')
-        );
-      }
-      elseif (!$config['use_instance_profile'] && (!$config['secret_key'] || !$config['access_key'])) {
-        throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
-          Please set them on the S3 File System admin/config/media/s3fs page or
-          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."));
-      }
-      elseif ($config['use_instance_profile'] && empty($config['default_cache_config'])) {
-        throw new S3fsException($this->t("Your AWS credentials have not been properly configured.
-          You are attempting to use instance profile credentials but you have not set a default cache location.
-          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php."));
-      }
 
       // Create the Aws\S3\S3Client object.
       if ($config['use_instance_profile']) {
