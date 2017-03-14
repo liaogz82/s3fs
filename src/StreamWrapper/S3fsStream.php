@@ -12,6 +12,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\s3fs\S3fsException;
+use Psr\Log\LogLevel;
 
 /**
  * Defines a Drupal s3 (s3://) stream wrapper class.
@@ -105,7 +106,11 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     }
 
     if (!$this->s3fs->validate($this->config)) {
-      throw new S3fsException('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.');
+      $message = $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.');
+      if (\Drupal::service('current_route_match')->getRouteName() == 'system.file_system_settings') {
+        return drupal_set_message($message, LogLevel::ERROR);
+      }
+      throw new S3fsException($message);
     }
 
     $this->s3 = $this->getClient();
