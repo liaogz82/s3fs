@@ -25,15 +25,15 @@ class S3fsServiceProvider implements ServiceModifierInterface {
       // Replace the public stream wrapper with S3fsStream.
       $container->getDefinition('stream_wrapper.public')
         ->setClass('Drupal\s3fs\StreamWrapper\PublicS3fsStream');
+
+      // Fix CSS static urls
+      $container->getDefinition('asset.css.optimizer')
+        ->setClass('Drupal\s3fs\S3fsCssOptimizer');
     }
     if (Settings::get('s3fs.use_s3_for_private') && $container->hasDefinition('stream_wrapper.private')) {
       // Replace the private stream wrapper with S3fsStream.
       $container->getDefinition('stream_wrapper.private')
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
     }
-
-    // Fix CSS static urls
-    $container->getDefinition('asset.css.optimizer')
-      ->setClass('Drupal\s3fs\S3fsCssOptimizer');
   }
 }
