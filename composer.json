@@ -1,10 +1,8 @@
 {
     "name": "drupal/s3fs",
     "description": "Adds an Amazon Simple Storage Service-based remote file system to Drupal.",
-    "require": {
-        "aws/aws-sdk-php": "^3.18"
-    },
-    "license": "GPL-2.0+",
+    "type": "drupal-module",
+    "homepage": "https://www.drupal.org/project/s3fs",
     "authors": [
         {
             "name": "Abhishek Anand",
@@ -14,5 +12,13 @@
             "name": "Juanen Bernal",
             "homepage": "https://www.drupal.org/user/1358146"
         }
-    ]
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/s3fs"
+    },
+    "license": "GPL-2.0+",
+    "minimum-stability": "dev",
+    "require": {
+        "aws/aws-sdk-php": "^3.18"
+    }
 }
