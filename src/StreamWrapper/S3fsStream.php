@@ -752,10 +752,10 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $query->fields('s')
       ->condition('uri', $query->escapeLike($slash_path) . '%', 'LIKE');
 
-    $file_count = $query->execute()->rowCount();
+    $file_count = $query->countQuery()->execute()->fetchField();
 
     // If the folder is empty, it's eligible for deletion.
-    if ($file_count === 0) {
+    if ($file_count == 0) {
       if (parent::rmdir($this->convertUriToKeyedPath($uri), $options)) {
         $this->deleteCache($uri);
         clearstatcache(TRUE, $uri);
