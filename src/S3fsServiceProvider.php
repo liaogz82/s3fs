@@ -30,10 +30,18 @@ class S3fsServiceProvider implements ServiceModifierInterface {
       $container->getDefinition('asset.css.optimizer')
         ->setClass('Drupal\s3fs\S3fsCssOptimizer');
     }
+
     if (Settings::get('s3fs.use_s3_for_private') && $container->hasDefinition('stream_wrapper.private')) {
       // Replace the private stream wrapper with S3fsStream.
       $container->getDefinition('stream_wrapper.private')
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
+    }
+
+    // @todo review if overwrite the services or add a new service with tag and
+    // diferent weight
+    if ($container->hasDefinition('path_processor.image_styles')) {
+      $container->getDefinition('path_processor.image_styles')
+        ->setClass('Drupal\s3fs\PathProcessor\S3fsPathProcessorImageStyles');
     }
   }
 }

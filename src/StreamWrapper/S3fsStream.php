@@ -315,17 +315,12 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $path_parts = explode('/', $s3_key);
     if ($path_parts[0] == 'styles' && substr($s3_key, -4) != '.css') {
       if (!$this->getS3fsObject($this->uri)) {
-
-        $args = $path_parts;
-        array_shift($args);
-        $style = array_shift($args);
-        $scheme = array_shift($args);
-        $filename = implode('/', $args);
-        $original_image = "$scheme://$filename";
-        // Load the image style configuration entity.
-        $style = ImageStyle::load($style);
-        $destination = $style->buildUri($original_image);
-        $style->createDerivative($original_image, $destination);
+        // The style delivery path looks like: s3/files/styles/thumbnail/...
+        // And $path_parts looks like array('styles', 'thumbnail', ...),
+        // so just prepend s3/files/.
+        array_unshift($path_parts, 's3', 'files');
+        $path = '/' . implode('/', $path_parts);
+        return Url::fromUserInput($path, ['absolute' => TRUE])->toString();
       }
     }
 
