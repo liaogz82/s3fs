@@ -319,8 +319,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
         // And $path_parts looks like array('styles', 'thumbnail', ...),
         // so just prepend s3/files/.
         array_unshift($path_parts, 's3', 'files');
-        $path = '/' . implode('/', $path_parts);
-        return Url::fromUserInput($path, ['absolute' => TRUE])->toString();
+        $path = implode('/', $path_parts);
+        return $GLOBALS['base_url'] . '/' . UrlHelper::encodePath($path);
       }
     }
 

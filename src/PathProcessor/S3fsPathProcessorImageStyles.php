@@ -2,7 +2,7 @@
 
 namespace Drupal\s3fs\PathProcessor;
 
-use Drupal\image\PathProcessor\PathProcessorImageStyles;
+use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -20,40 +20,44 @@ use Symfony\Component\HttpFoundation\Request;
  *   derivatives are already using system/files/styles. Similar to public image
  *   styles, it also converts the file path to a query parameter.
  */
-class S3fsPathProcessorImageStyles extends PathProcessorImageStyles {
+class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
+
+  const IMAGE_STYLE_PATH_PREFIX = '/s3/files/styles/';
 
   /**
    * {@inheritdoc}
    */
   public function processInbound($path, Request $request) {
-    $s3_path_prefix = '/s3/files/styles/';
-
-    if (strpos($path, $s3_path_prefix) === 0) {
+    if ($this->isImageStylePath($path)) {
       // Strip out path prefix.
-      $rest = preg_replace('|^' . preg_quote($s3_path_prefix, '|') . '|', '', $path);
+      $rest = preg_replace('|^' . preg_quote(static::IMAGE_STYLE_PATH_PREFIX, '|') . '|', '', $path);
 
       // Get the image style, scheme and path.
       if (substr_count($rest, '/') >= 2) {
         list($image_style, $scheme, $file) = explode('/', $rest, 3);
-      }
 
-      switch ($scheme) {
-        case 'public':
-          // Set the file as query parameter.
-          $request->query->set('file', $file);
-          $path = $s3_path_prefix . $image_style . '/' . $scheme;
-          break;
-        case 'private':
-          $path_prefix = '/system/files/styles/';
-          break;
-      }
+        switch ($scheme) {
+          case 'public':
+            // Set the file as query parameter.
+            $request->query->set('file', $file);
+            $path = static::IMAGE_STYLE_PATH_PREFIX . $image_style . '/' . $scheme;
+            break;
+          case 'private':
+            $path_prefix = '/system/files/styles/';
+            break;
+        }
 
-      if (isset($path_prefix)) {
-          $path = str_replace($s3_path_prefix, $path_prefix, $path);
+        if (isset($path_prefix)) {
+            $path = str_replace(static::IMAGE_STYLE_PATH_PREFIX, $path_prefix, $path);
+        }
       }
     }
 
-    return parent::processInbound($path, $request);
+    return $path;
+  }
+
+  private function isImageStylePath($path) {
+    return strpos($path, static::IMAGE_STYLE_PATH_PREFIX) === 0;
   }
 
 }

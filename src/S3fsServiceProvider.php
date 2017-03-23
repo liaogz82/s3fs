@@ -36,12 +36,5 @@ class S3fsServiceProvider implements ServiceModifierInterface {
       $container->getDefinition('stream_wrapper.private')
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
     }
-
-    // @todo review if overwrite the services or add a new service with tag and
-    // diferent weight
-    if ($container->hasDefinition('path_processor.image_styles')) {
-      $container->getDefinition('path_processor.image_styles')
-        ->setClass('Drupal\s3fs\PathProcessor\S3fsPathProcessorImageStyles');
-    }
   }
 }
