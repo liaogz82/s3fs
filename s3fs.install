@@ -72,7 +72,6 @@ function s3fs_requirements($phase) {
   return $requirements;
 }
 
-
 /**
  * Implements hook_schema().
  */
@@ -126,9 +125,9 @@ function s3fs_schema() {
     // manually fix that in hook_install().
     'collation' => 'utf8_bin',
   ];
+
   return $schema;
 }
-
 
 /**
  * Implements hook_install().
@@ -146,16 +145,18 @@ function s3fs_install() {
     case 'pgsql':
       // Postgres uses binary collation by default.
       break;
+
     case 'sqlite':
       // SQLite uses binary collation by default.
       break;
+
     case 'mysql':
-      // As stated here: http://forums.mysql.com/read.php?103,19380,200971#msg-200971
-      // MySQL doesn't directly support case sensitive UTF8 collation. Fortunately,
-      // 'utf8_bin' collation works for our purposes.
+      // As stated here:
+      // http://forums.mysql.com/read.php?103,19380,200971#msg-200971
+      // MySQL doesn't directly support case sensitive UTF8 collation.
+      // Fortunately, 'utf8_bin' collation works for our purposes.
       \Drupal::database()->query("ALTER TABLE {s3fs_file} CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
       \Drupal::database()->query("ALTER TABLE {s3fs_file} ADD PRIMARY KEY (uri)");
       break;
   }
-
 }
