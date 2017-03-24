@@ -11,14 +11,17 @@ use Symfony\Component\HttpFoundation\Request;
  * As the route system does not allow arbitrary amount of parameters convert
  * the file path to a query parameter on the request.
  *
- * This processor handles two different cases:
- * - public image styles: In order to allow the webserver to serve these files
- *   directly, the route is registered under the same path as the image style so
- *   it took over the first generation. Therefore the path processor converts
- *   the file path to a query parameter.
- * - private image styles: In contrast to public image styles, private
- *   derivatives are already using system/files/styles. Similar to public image
- *   styles, it also converts the file path to a query parameter.
+ * This processor handles Amazon S3 public image style callback:
+ * - In order to allow the webserver to serve these files with dynamic args
+ *   the route is registered under /s3/files/styles prefix and change internally
+ *   to pass validation and move the file to query parameter. This file will be
+ *   processed in S3fsImageStyleDownloadController::deliver().
+ *
+ * Private files use the normal private file workflow.
+ *
+ * @see \Drupal\s3fs\Controller\S3fsImageStyleDownloadController::deliver()
+ * @see \Drupal\image\Controller\ImageStyleDownloadController::deliver()
+ * @see \Drupal\image\PathProcessor\PathProcessorImageStyles::processInbound()
  */
 class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
 
@@ -47,6 +50,12 @@ class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
     return $path;
   }
 
+  /**
+   * Check if the path is a s3 image style path.
+   *
+   * @param $path
+   * @return bool
+   */
   private function isImageStylePath($path) {
     return strpos($path, static::IMAGE_STYLE_PATH_PREFIX) === 0;
   }

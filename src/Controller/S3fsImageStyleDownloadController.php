@@ -12,29 +12,33 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 /**
- * Defines a controller to serve image styles.
+ * Defines a controller to serve public/s3 Amazon S3 image styles.
  */
 class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
 
   /**
-   * Generates a derivative, given a style and image path.
+   * Generates a Amazon S3 derivative, given a style and image path.
    *
-   * After generating an image, transfer it to the requesting agent.
+   * After generating an image, redirect it to the requesting agent. Only used
+   * for public or s3 schemes. Private scheme use the normal workflow:
+   * \Drupal\image\Controller\ImageStyleDownloadController::deliver().
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object.
    * @param string $scheme
-   *   The file scheme, defaults to 'private'.
+   *   The file scheme.
    * @param \Drupal\image\ImageStyleInterface $image_style
    *   The image style to deliver.
    *
-   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
-   *   The transferred file as response or some error response.
+   * @return \Drupal\Core\Routing\TrustedRedirectResponse|\Symfony\Component\HttpFoundation\Response
+   *   The redirect response or some error response.
    *
    * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
    *   Thrown when the user does not have access to the file.
    * @throws \Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException
    *   Thrown when the file is still being generated.
+   *
+   * @see \Drupal\image\Controller\ImageStyleDownloadController::deliver().
    */
   public function deliver(Request $request, $scheme, ImageStyleInterface $image_style) {
     $target = $request->query->get('file');
@@ -61,8 +65,8 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
 
     $derivative_uri = $image_style->buildUri($image_uri);
 
-    // private scheme use ImageStyleDownloadController::deliver() instead of
-    // this.
+    // private scheme use \Drupal\image\Controller\ImageStyleDownloadController::deliver()
+    // instead of this.
     if ($scheme == 'private') {
       throw new AccessDeniedHttpException();
     }
@@ -76,7 +80,9 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
       $path_info = pathinfo($image_uri);
       $converted_image_uri = $path_info['dirname'] . DIRECTORY_SEPARATOR . $path_info['filename'];
       if (!file_exists($converted_image_uri)) {
-        $this->logger->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', array('%source_image_path' => $image_uri, '%derivative_path' => $derivative_uri));
+        $this->logger->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.',
+          ['%source_image_path' => $image_uri, '%derivative_path' => $derivative_uri]
+        );
         return new Response($this->t('Error generating image, missing source file.'), 404);
       }
       else {
@@ -102,7 +108,7 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
     $success = file_exists($derivative_uri);
 
     if (!$success) {
-    // If we successfully generate the derivative, wait until S3 acknolowedges
+    // If we successfully generate the derivative, wait until S3 acknowledges
     // its existence. Otherwise, redirecting to it may cause a 403 error.
     $success = $image_style->createDerivative($image_uri, $derivative_uri) &&
       \Drupal::service('stream_wrapper_manager')->getViaScheme('s3')->waitUntilFileExists($derivative_uri);
@@ -114,11 +120,11 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
 
     if ($success) {
       // Perform a 302 Redirect to the new image derivative in S3.
-      // It must be TrustedRedirectResponse for external redirections.
+      // It must be TrustedRedirectResponse for external redirects.
       return new TrustedRedirectResponse(file_create_url($derivative_uri));
     }
     else {
-      $this->logger->notice('Unable to generate the derived image located at %path.', array('%path' => $derivative_uri));
+      $this->logger->notice('Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);
       return new Response($this->t('Error generating image.'), 500);
     }
   }
