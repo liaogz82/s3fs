@@ -37,4 +37,5 @@ class S3fsServiceProvider implements ServiceModifierInterface {
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
     }
   }
+
 }

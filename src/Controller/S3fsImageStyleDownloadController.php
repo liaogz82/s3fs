@@ -60,15 +60,11 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
     }
 
     $derivative_uri = $image_style->buildUri($image_uri);
-    $headers = array();
 
-    // If using the private scheme, let other modules provide headers and
-    // control access to the file.
+    // private scheme use ImageStyleDownloadController::deliver() instead of
+    // this.
     if ($scheme == 'private') {
-      $headers = $this->moduleHandler()->invokeAll('file_download', array($image_uri));
-      if (in_array(-1, $headers) || empty($headers)) {
-        throw new AccessDeniedHttpException();
-      }
+      throw new AccessDeniedHttpException();
     }
 
     // Don't try to generate file if source is missing.

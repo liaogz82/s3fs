@@ -36,19 +36,10 @@ class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
       if (substr_count($rest, '/') >= 2) {
         list($image_style, $scheme, $file) = explode('/', $rest, 3);
 
-        switch ($scheme) {
-          case 'public':
-            // Set the file as query parameter.
-            $request->query->set('file', $file);
-            $path = static::IMAGE_STYLE_PATH_PREFIX . $image_style . '/' . $scheme;
-            break;
-          case 'private':
-            $path_prefix = '/system/files/styles/';
-            break;
-        }
-
-        if (isset($path_prefix)) {
-            $path = str_replace(static::IMAGE_STYLE_PATH_PREFIX, $path_prefix, $path);
+        if ($scheme ==='public') {
+          // Set the file as query parameter.
+          $request->query->set('file', $file);
+          $path = static::IMAGE_STYLE_PATH_PREFIX . $image_style . '/' . $scheme;
         }
       }
     }
