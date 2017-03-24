@@ -39,7 +39,7 @@ class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
       if (substr_count($rest, '/') >= 2) {
         list($image_style, $scheme, $file) = explode('/', $rest, 3);
 
-        if ($scheme ==='public') {
+        if ($this->isValidScheme($scheme)) {
           // Set the file as query parameter.
           $request->query->set('file', $file);
           $path = static::IMAGE_STYLE_PATH_PREFIX . $image_style . '/' . $scheme;
@@ -58,6 +58,16 @@ class S3fsPathProcessorImageStyles implements InboundPathProcessorInterface {
    */
   private function isImageStylePath($path) {
     return strpos($path, static::IMAGE_STYLE_PATH_PREFIX) === 0;
+  }
+
+  /**
+   * Check if scheme is Amazon S3 image style supported.
+   *
+   * @param $scheme
+   * @return bool
+   */
+  private function isValidScheme($scheme) {
+    return in_array($scheme, ['public', 's3']);
   }
 
 }
