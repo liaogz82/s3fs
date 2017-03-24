@@ -65,7 +65,7 @@ function drush_s3fs_copy_local($scheme = 'all') {
   drush_log(dt('You should have read "Copy local files to S3" section in README.txt.'), LogLevel::WARNING);
   drush_print(dt('This command only is useful if you have or you are going to have enabled s3 for public/private in your setting.php'));
 
-  if (!drush_confirm('Are you sure?')) {
+  if (!drush_confirm(dt('Are you sure?'))) {
     return drush_user_abort();
   }
 
