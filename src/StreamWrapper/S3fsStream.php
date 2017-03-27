@@ -10,7 +10,6 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\image\Entity\ImageStyle;
 use Drupal\s3fs\S3fsException;
 use Psr\Log\LogLevel;
 
