@@ -1185,6 +1185,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $params = $this->getCommandParams($uri);
     try {
       $result = $this->s3->headObject($params);
+      $data = $result->toArray();
     }
     catch (S3fsException $e) {
       // headObject() throws this exception if the requested key doesn't exist
@@ -1192,7 +1193,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       return FALSE;
     }
 
-    return $this->s3fs->convertMetadata($uri, $result);
+    return $this->s3fs->convertMetadata($uri, $data);
   }
 
   /**
