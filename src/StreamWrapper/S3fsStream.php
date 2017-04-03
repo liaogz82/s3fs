@@ -3,6 +3,7 @@
 namespace Drupal\s3fs\StreamWrapper;
 
 use Aws\CacheInterface;
+use Aws\S3\Exception\S3Exception;
 use Aws\S3\StreamWrapper;
 use Aws\S3\S3ClientInterface;
 use Drupal\Component\Utility\UrlHelper;
@@ -1177,7 +1178,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @return array
    *   An array of DB-compatible file metadata.
    *
-   * @throws \Drupal\s3fs\S3fsException
+   * @throws \Aws\S3\Exception\S3Exception
    *   Any exception raised by the listObjects() S3 command will percolate
    *   out of this function.
    */
@@ -1187,7 +1188,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $result = $this->s3->headObject($params);
       $data = $result->toArray();
     }
-    catch (S3fsException $e) {
+    catch (S3Exception $e) {
       // headObject() throws this exception if the requested key doesn't exist
       // in the bucket.
       return FALSE;
