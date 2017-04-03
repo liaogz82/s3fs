@@ -231,13 +231,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => Settings::get('s3fs.use_s3_for_public'),
       '#disabled' => TRUE,
       '#description' => $this->t(
-        'Enable this option to store all files which would be uploaded to or created in the web server\'s local file system
+        "Enable this option to store all files which would be uploaded to or created in the web server's local file system
       within your S3 bucket instead. To replace public:// stream wrapper with s3fs stream, include the following in settings.php:<br>
-      <em>$settings[\'s3fs.use_s3_for_public\'] = TRUE;</em><br><br>
-      <b>PLEASE NOTE:</b> If you intend to use Drupal\'s performance options which aggregate your CSS or Javascript
-      files, or will be using any other system that writes CSS or Javascript files into your site\'s public:// file system,
+      <em>\$settings['s3fs.use_s3_for_public'] = TRUE;</em><br><br>
+      <b>PLEASE NOTE:</b> If you intend to use Drupal's performance options which aggregate your CSS or Javascript
+      files, or will be using any other system that writes CSS or Javascript files into your site's public:// file system,
       you must perform some additional configuration on your webserver to make those files work correctly when stored in S3.
-      Please see the section titled "Aggregated CSS and JS in S3" in the README for details.'
+      Please see the section titled \"Aggregated CSS and JS in S3\" in the README for details."
       ),
     ];
     $advanced['no_rewrite_cssjs'] = [
@@ -266,10 +266,10 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $twig_storage,
       '#disabled' => TRUE,
       '#description' => $this->t(
-        '<b>PLEASE NOTE:</b> If you intend use s3fs for public:// you should change your php twig storage folder to a local
+        "<b>PLEASE NOTE:</b> If you intend use s3fs for public:// you should change your php twig storage folder to a local
         directory, php twig files in S3 produce latency and security issues (these files would be public). Please change
         the php_storage settings in your setting.php and choose a directory, out of docroot recommended. Example:<br>
-        <em>$settings[\'php_storage\'][\'twig\'][\'directory\'] = \'../storage/php\';</em>'
+        <em>\$settings['php_storage']['twig']['directory'] = '../storage/php';</em>"
       ),
       '#states' => [
         'visible' => [
@@ -283,9 +283,9 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => Settings::get('s3fs.use_s3_for_private'),
       '#disabled' => TRUE,
       '#description' => $this->t(
-        'Enable this option to store all files which would be uploaded to or created in the private://
+        "Enable this option to store all files which would be uploaded to or created in the private://
       file system (files available only to authneticated users) within your S3 bucket instead. To replace private:// stream wrapper with s3fs stream, include the following in settings.php:<br>
-        <em>$settings[\'s3fs.use_s3_for_private\'] = TRUE;</em>'
+        <em>\$settings['s3fs.use_s3_for_private'] = TRUE;</em>"
       ),
     ];
     $advanced['root_folder'] = [
@@ -293,13 +293,13 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Root Folder'),
       '#default_value' => $config->get('root_folder'),
       '#description' => $this->t(
-        'S3 File System uses the specified folder as the root of the file system within your bucket (if blank, the bucket
+        "S3 File System uses the specified folder as the root of the file system within your bucket (if blank, the bucket
       root is used). This is helpful when your bucket is used by multiple sites, or has additional data in it which
       s3fs should not interfere with.<br>
       The metadata refresh function will not retrieve metadata for any files which are outside the Root Folder.<br>
       This setting is case sensitive. Do not include leading or trailing slashes.<br>
-      Changing this setting <b>will not</b> move any files. If you\'ve already uploaded files to S3 through S3 File
-      System, you will need to manually move them into this folder.'
+      Changing this setting <b>will not</b> move any files. If you've already uploaded files to S3 through S3 File
+      System, you will need to manually move them into this folder."
       ),
     ];
     $advanced['additional_folders'] = [
@@ -308,8 +308,8 @@ class SettingsForm extends ConfigFormBase {
       '#collapsible' => TRUE,
       '#collapsed'   => TRUE,
       '#description' => $this->t(
-        'Like the root folder, changing these settings <b>will not</b> move any files. If you\'ve already uploaded files
-      to S3 through S3 File System, you will need to manually move them into the corresponding folders.'),
+        "Like the root folder, changing these settings <b>will not</b> move any files. If you've already uploaded files
+      to S3 through S3 File System, you will need to manually move them into the corresponding folders."),
     ];
     $additional_folders = &$advanced['additional_folders'];
     $additional_folders['public_folder'] = [

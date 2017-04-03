@@ -24,7 +24,7 @@ class ActionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
-    $form['refresh_cache'] = array(
+    $form['refresh_cache'] = [
       '#type' => 'fieldset',
       '#description' => $this->t(
         "The file metadata cache keeps track of every file that S3 File System writes to (and deletes from) the S3 bucket,
@@ -32,17 +32,17 @@ class ActionsForm extends FormBase {
       This speeds up many operations, most noticeably anything related to images and their derivatives."
       ),
       '#title' => $this->t('File Metadata Cache'),
-    );
-    $refresh_description =  $this->t(
+    ];
+    $refresh_description = $this->t(
       "This button queries S3 for the metadata of <i><b>all</b></i> the files in your site's bucket (unless you use the
     Root Folder option), and saves it to the database. This may take a while for buckets with many thousands of files. <br>
     It should only be necessary to use this button if you've just installed S3 File System and you need to cache all the
     pre-existing files in your bucket, or if you need to restore your metadata cache from scratch for some other reason."
     );
-    $form['refresh_cache']['refresh'] = array(
+    $form['refresh_cache']['refresh'] = [
       '#type' => 'submit',
       '#suffix' => '<div class="refresh">' . $refresh_description . '</div>',
-      '#value' => $this->t('Refresh file metadata cache'),
+      '#value' => $this->t("Refresh file metadata cache"),
       // @todo Now we can't attach css inline with #attached, when core
       // implements, we implement too
       // @see https://www.drupal.org/node/2391025
@@ -53,15 +53,15 @@ class ActionsForm extends FormBase {
       // '#edit-refresh {margin-bottom: 0; margin-top: 1em;} div.refresh {margin-bottom: 1em;}' => array('type' => 'inline')
       // ),
       // ),
-      '#validate' => array(
-        array($this, 'refreshCacheValidateForm'),
-      ),
-      '#submit' => array(
-        array($this, 'refreshCacheSubmitForm')
-      ),
-    );
+      '#validate' => [
+        [$this, 'refreshCacheValidateForm'],
+      ],
+      '#submit' => [
+        [$this, 'refreshCacheSubmitForm'],
+      ],
+    ];
 
-    $form['copy_local'] = array(
+    $form['copy_local'] = [
       '#type' => 'fieldset',
       '#description' => $this->t(
         "<b>Important: This feature is for sites that have configured or going to have configured to take
@@ -73,40 +73,48 @@ class ActionsForm extends FormBase {
       break very long copy operations."
       ),
       '#title' => $this->t('Copy Local Files to S3'),
-    );
+    ];
 
-    $form['copy_local']['public'] = array(
+    $form['copy_local']['public'] = [
       '#type' => 'submit',
       '#prefix' => '<br>',
       '#name' => 'public',
       '#value' => $this->t('Copy local public files to S3'),
-      '#validate' => array(
-        array($this, 'copyLocalValidateForm'),
-      ),
-      '#submit' => array(
-        array($this, 'copyLocalSubmitForm'),
-      ),
-    );
+      '#validate' => [
+        [$this, 'copyLocalValidateForm'],
+      ],
+      '#submit' => [
+        [$this, 'copyLocalSubmitForm'],
+      ],
+    ];
 
     if (Settings::get('file_private_path')) {
-      $form['copy_local']['private'] = array(
+      $form['copy_local']['private'] = [
         '#type' => 'submit',
         '#prefix' => '<br>',
         '#name' => 'private',
         '#value' => $this->t('Copy local private files to S3'),
-        '#validate' => array(
-          array($this, 'copyLocalValidateForm'),
-        ),
-        '#submit' => array(
-          array($this, 'copyLocalSubmitForm'),
-        ),
-      );
+        '#validate' => [
+          [$this, 'copyLocalValidateForm'],
+        ],
+        '#submit' => [
+          [$this, 'copyLocalSubmitForm'],
+        ],
+      ];
     }
 
     return $form;
   }
 
-  public function refreshCacheValidateForm($form, FormStateInterface $form_state) {
+  /**
+   * Refreshes in form validation.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function refreshCacheValidateForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::config('s3fs.settings')->get();
     if (!\Drupal::service('s3fs')->validate($config)) {
       $form_state->setError(
@@ -115,19 +123,33 @@ class ActionsForm extends FormBase {
       );
     }
 
-    // Use this values for submit step
-    $form_state->set('s3fs', array(
-      'config' => $config,
-    ));
+    // Use this values for submit step.
+    $form_state->set('s3fs', ['config' => $config]);
   }
 
+  /**
+   * Validates in form submission.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
   public function refreshCacheSubmitForm(array &$form, FormStateInterface $form_state) {
     $s3fs_storage = $form_state->get('s3fs');
     $config = $s3fs_storage['config'];
     \Drupal::service('s3fs')->refreshCache($config);
   }
 
-  public function copyLocalValidateForm($form, FormStateInterface $form_state) {
+  /**
+   * Validates the form.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function copyLocalValidateForm(array $form, FormStateInterface $form_state) {
     $config = \Drupal::config('s3fs.settings')->get();
     if (!\Drupal::service('s3fs')->validate($config)) {
       $form_state->setError(
@@ -151,19 +173,25 @@ class ActionsForm extends FormBase {
     else {
       $form_state->setError(
         $form,
-        $this->t('Scheme @scheme is not supported.', array(
-          '@scheme' => $destination_scheme
-        ))
+        $this->t('Scheme @scheme is not supported.', ['@scheme' => $destination_scheme])
       );
     }
 
-    // Use this values for submit step
-    $form_state->set('s3fs', array(
+    // Use this values for submit step.
+    $form_state->set('s3fs', [
       'config' => $config,
       'scheme' => $destination_scheme,
-    ));
+    ]);
   }
 
+  /**
+   * Submits the form.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
   public function copyLocalSubmitForm(array &$form, FormStateInterface $form_state) {
     $s3fs_storage = $form_state->get('s3fs');
     $config = $s3fs_storage['config'];
