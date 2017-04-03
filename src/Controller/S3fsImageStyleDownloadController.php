@@ -38,7 +38,7 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
    * @throws \Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException
    *   Thrown when the file is still being generated.
    *
-   * @see \Drupal\image\Controller\ImageStyleDownloadController::deliver().
+   * @see \Drupal\image\Controller\ImageStyleDownloadController::deliver()
    */
   public function deliver(Request $request, $scheme, ImageStyleInterface $image_style) {
     $target = $request->query->get('file');
@@ -65,7 +65,8 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
 
     $derivative_uri = $image_style->buildUri($image_uri);
 
-    // private scheme use \Drupal\image\Controller\ImageStyleDownloadController::deliver()
+    // Private scheme use:
+    // \Drupal\image\Controller\ImageStyleDownloadController::deliver()
     // instead of this.
     if ($scheme == 'private') {
       throw new AccessDeniedHttpException();
@@ -103,15 +104,15 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
       }
     }
 
-    // Try to generate the image, unless another thread just did it while we were
-    // acquiring the lock.
+    // Try to generate the image, unless another thread just did it while we
+    // were acquiring the lock.
     $success = file_exists($derivative_uri);
 
     if (!$success) {
-    // If we successfully generate the derivative, wait until S3 acknowledges
-    // its existence. Otherwise, redirecting to it may cause a 403 error.
-    $success = $image_style->createDerivative($image_uri, $derivative_uri) &&
-      \Drupal::service('stream_wrapper_manager')->getViaScheme('s3')->waitUntilFileExists($derivative_uri);
+      // If we successfully generate the derivative, wait until S3 acknowledges
+      // its existence. Otherwise, redirecting to it may cause a 403 error.
+      $success = $image_style->createDerivative($image_uri, $derivative_uri) &&
+        \Drupal::service('stream_wrapper_manager')->getViaScheme('s3')->waitUntilFileExists($derivative_uri);
     }
 
     if (!empty($lock_acquired)) {
