@@ -30,7 +30,7 @@ interface S3fsServiceInterface {
    *
    * @throws \Drupal\s3fs\S3fsException
    */
-  function getAmazonS3Client($config);
+  function getAmazonS3Client(array $config);
 
   /**
    * Copies all the local files from the specified file system into S3.
@@ -40,7 +40,7 @@ interface S3fsServiceInterface {
    * @param $scheme
    *   A variable defining which scheme (Public or Private) to copy.
    */
-  function copyFileSystemToS3($config, $scheme);
+  function copyFileSystemToS3(array $config, $scheme);
 
   /**
    * Scans a given directory.
@@ -66,7 +66,7 @@ interface S3fsServiceInterface {
    * @param array $config
    *   An s3fs configuration array.
    */
-  function refreshCache($config);
+  function refreshCache(array $config);
 
   /**
    * Convert file metadata returned from S3 into a metadata cache array.
@@ -81,6 +81,6 @@ interface S3fsServiceInterface {
    * @return array
    *   A file metadata cache array.
    */
-  function convertMetadata($uri, $s3_metadata);
+  function convertMetadata($uri, array $s3_metadata);
 
 }
