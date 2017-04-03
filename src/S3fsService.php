@@ -176,7 +176,7 @@ class S3fsService implements S3fsServiceInterface {
     if (!isset($s3) || $static_config != $config) {
 
       // Create the Aws\S3\S3Client object.
-      if ($config['use_instance_profile']) {
+      if (!empty($config['use_instance_profile'])) {
         $client_config = ['default_cache_config' => $config['default_cache_config']];
       }
       else {
