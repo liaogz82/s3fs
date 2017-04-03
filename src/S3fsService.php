@@ -40,7 +40,6 @@ class S3fsService implements S3fsServiceInterface {
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   The new database connection object.
-   *
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   The config factory object.
    */
@@ -54,19 +53,20 @@ class S3fsService implements S3fsServiceInterface {
    *
    * Validate the S3fs config.
    *
-   * @param $config
+   * @param array $config
    *   Array of configuration settings from which to configure the client.
-   * @param $returnError
+   * @param bool $returnError
    *   Boolean, False by default.
    *
-   * @return Boolean/array
+   * @return bool|array
+   *   Returns a boolean value or an array.
    */
   public function validate(array $config, $returnError = FALSE) {
     if (!class_exists('Aws\S3\S3Client')) {
       if ($returnError) {
         return [
           'form',
-          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.')
+          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.'),
         ];
       }
       return FALSE;
@@ -77,7 +77,7 @@ class S3fsService implements S3fsServiceInterface {
           'form',
           $this->t("Your AWS credentials have not been properly configured.
           Please set them on the S3 File System admin/config/media/s3fs page or
-          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php.")
+          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."),
         ];
       }
       return FALSE;
@@ -88,7 +88,7 @@ class S3fsService implements S3fsServiceInterface {
           'default_cache_config',
           $this->t("Your AWS credentials have not been properly configured.
           You are attempting to use instance profile credentials but you have not set a default cache location.
-          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php.")
+          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php."),
         ];
       }
       return FALSE;
@@ -98,7 +98,7 @@ class S3fsService implements S3fsServiceInterface {
       if ($returnError) {
         return [
           'bucket',
-          $this->t('Your AmazonS3 bucket name is not configured.')
+          $this->t('Your AmazonS3 bucket name is not configured.'),
         ];
       }
       return FALSE;
@@ -158,15 +158,16 @@ class S3fsService implements S3fsServiceInterface {
    * For performance reasons, only one S3Client object will ever be created
    * within a single request.
    *
-   * @param $config
+   * @param array $config
    *   Array of configuration settings from which to configure the client.
    *
    * @return \Aws\S3\S3Client
    *   The fully-configured S3Client object.
    *
    * @throws \Drupal\s3fs\S3fsException
+   *   The S3fs Exception.
    */
-  public function getAmazonS3Client($config) {
+  public function getAmazonS3Client(array $config) {
     $s3 = &drupal_static(__METHOD__ . '_S3Client');
     $static_config = &drupal_static(__METHOD__ . '_static_config');
 
@@ -207,12 +208,12 @@ class S3fsService implements S3fsServiceInterface {
    *
    * @param array $config
    *   An s3fs configuration array.
-   * @param $scheme
+   * @param string $scheme
    *   A variable defining which scheme (Public or Private) to copy.
    *
    * @todo implements a Batch, UI and Drush compatible
    */
-  public function copyFileSystemToS3($config, $scheme) {
+  public function copyFileSystemToS3(array $config, $scheme) {
     if ($scheme == 'public') {
       $source_folder = realpath(PublicStream::basePath());
       $target_folder = !empty($config['public_folder']) ? $config['public_folder'] . '/' : 's3fs-public/';
@@ -257,7 +258,7 @@ class S3fsService implements S3fsServiceInterface {
    *
    * Scans a given directory.
    *
-   * @param $dir
+   * @param string $dir
    *   The directory to be scanned.
    *
    * @return array
@@ -303,15 +304,15 @@ class S3fsService implements S3fsServiceInterface {
    * @param array $config
    *   An s3fs configuration array.
    */
-  public function refreshCache($config) {
+  public function refreshCache(array $config) {
     $s3 = $this->getAmazonS3Client($config);
 
     // Set up the iterator that will loop over all the objects in the bucket.
-    $file_metadata_list = array();
-    $iterator_args = array('Bucket' => $config['bucket']);
+    $file_metadata_list = [];
+    $iterator_args = ['Bucket' => $config['bucket']];
     if (!empty($config['root_folder'])) {
-      // If the root_folder option has been set, retrieve from S3 only those files
-      // which reside in the root folder.
+      // If the root_folder option has been set, retrieve from S3 only those
+      // files which reside in the root folder.
       $iterator_args['Prefix'] = "{$config['root_folder']}/";
 
     }
@@ -324,12 +325,12 @@ class S3fsService implements S3fsServiceInterface {
     // The $folders array is an associative array keyed by folder paths, which
     // is constructed as each filename is written to the DB. After all the files
     // are written, the folder paths are converted to metadata and written.
-    $folders = array();
+    $folders = [];
     // Start by gathering all the existing folders. If we didn't do this, empty
     // folders would be lost, because they'd have no files from which to rebuild
     // themselves.
     $existing_folders = \Drupal::database()->select('s3fs_file', 's')
-      ->fields('s', array('uri'))
+      ->fields('s', ['uri'])
       ->condition('dir', 1, '=');
     foreach ($existing_folders->execute()->fetchCol(0) as $folder_uri) {
       $folders[$folder_uri] = TRUE;
@@ -361,11 +362,12 @@ class S3fsService implements S3fsServiceInterface {
       $public_folder_name = !empty($config['public_folder']) ? $config['public_folder'] : 's3fs-public';
       $private_folder_name = !empty($config['private_folder']) ? $config['private_folder'] : 's3fs-private';
       if (strpos($key, "$public_folder_name/") === 0) {
-        // Much like the root folder, the public folder name must be removed from URIs.
+        // Much like the root folder, the public folder name must be removed
+        // from URIs.
         $key = str_replace("$public_folder_name/", '', $key);
         $uri = "public://$key";
       }
-      else if (strpos($key, "$private_folder_name/") === 0) {
+      elseif (strpos($key, "$private_folder_name/") === 0) {
         $key = str_replace("$private_folder_name/", '', $key);
         $uri = "private://$key";
       }
@@ -409,9 +411,9 @@ class S3fsService implements S3fsServiceInterface {
     // write those folders to the DB.
     if ($folders) {
       $insert_query = \Drupal::database()->insert('s3fs_file_temp')
-        ->fields(array('uri', 'filesize', 'timestamp', 'dir', 'version'));
+        ->fields(['uri', 'filesize', 'timestamp', 'dir', 'version']);
       foreach ($folders as $folder_uri => $ph) {
-        $metadata = $this->convertMetadata($folder_uri, array());
+        $metadata = $this->convertMetadata($folder_uri, []);
         $insert_query->values($metadata);
       }
       // @todo: If this throws an integrity constraint violation, then the user's
@@ -449,7 +451,7 @@ class S3fsService implements S3fsServiceInterface {
    * @return array
    *   A file metadata cache array.
    */
-  public function convertMetadata($uri, $s3_metadata) {
+  public function convertMetadata($uri, array $s3_metadata) {
     // Need to fill in a default value for everything, so that DB calls
     // won't complain about missing fields.
     $metadata = [
@@ -497,10 +499,10 @@ class S3fsService implements S3fsServiceInterface {
    *   An associative array keyed by folder name, which is populated with the
    *   ancestor folders of each file in $file_metadata_list.
    */
-  private function writeTemporaryMetadata(&$file_metadata_list, &$folders) {
+  private function writeTemporaryMetadata(array &$file_metadata_list, array &$folders) {
     if ($file_metadata_list) {
       $insert_query = \Drupal::database()->insert('s3fs_file_temp')
-        ->fields(array('uri', 'filesize', 'timestamp', 'dir', 'version'));
+        ->fields(['uri', 'filesize', 'timestamp', 'dir', 'version']);
 
       foreach ($file_metadata_list as $metadata) {
         // Write the file metadata to the DB.
@@ -519,7 +521,7 @@ class S3fsService implements S3fsServiceInterface {
     }
 
     // Empty out the file array, so it can be re-filled by the next request.
-    $file_metadata_list = array();
+    $file_metadata_list = [];
   }
 
 }
