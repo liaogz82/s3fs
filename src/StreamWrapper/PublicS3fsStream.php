@@ -3,8 +3,7 @@
 namespace Drupal\s3fs\StreamWrapper;
 
 /**
- * Defines a Drupal s3fs stream wrapper class for use with public scheme
- * (public://).
+ * Defines a Drupal s3fs stream wrapper class for use with public scheme.
  *
  * Provides support for storing files on the amazon s3 file system with the
  * Drupal file interface.
