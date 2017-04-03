@@ -56,6 +56,7 @@ class SettingsForm extends ConfigFormBase {
       'sa-east-1' => 'South America - Sao Paulo (sa-east-1)',
       'cn-north-1' => 'China - Beijing (cn-north-1)',
     ];
+
     $form['credentials'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Amazon Web Services Credentials'),
@@ -68,17 +69,6 @@ class SettingsForm extends ConfigFormBase {
       '#collapsed' => $config->get('use_instance_profile'),
     ];
 
-    $form['credentials']['access_key'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Amazon Web Services Access Key'),
-      '#default_value' => $config->get('access_key'),
-    ];
-
-    $form['credentials']['secret_key'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Amazon Web Services Secret Key'),
-      '#default_value' => $config->get('secret_key'),
-    ];
     $form['credentials']['use_instance_profile'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use EC2 Instance Profile Credentials'),
@@ -88,6 +78,29 @@ class SettingsForm extends ConfigFormBase {
         rather than setting your AWS credentials directly.'
       ),
     ];
+
+    $form['credentials']['access_key'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Amazon Web Services Access Key'),
+      '#default_value' => $config->get('access_key'),
+      '#states' => [
+        'visible' => [
+          ':input[id=edit-use-instance-profile]' => ['checked' => FALSE],
+        ],
+      ],
+    ];
+
+    $form['credentials']['secret_key'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Amazon Web Services Secret Key'),
+      '#default_value' => $config->get('secret_key'),
+      '#states' => [
+        'visible' => [
+          ':input[id=edit-use-instance-profile]' => ['checked' => FALSE],
+        ],
+      ],
+    ];
+
     $form['credentials']['default_cache_config'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Default Cache Location'),
