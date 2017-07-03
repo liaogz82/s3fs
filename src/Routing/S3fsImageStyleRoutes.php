@@ -45,18 +45,23 @@ class S3fsImageStyleRoutes implements ContainerInjectionInterface {
    *   An array of route objects.
    */
   public function routes() {
-    $routes = array();
+    $routes = [];
     // Only add route for image styles if image module is enabled.
     if ($this->moduleHandler->moduleExists('image')) {
       $routes['s3fs.image_styles'] = new Route(
         '/s3/files/styles/{image_style}/{scheme}',
-        array(
-          '_controller' => '\Drupal\s3fs\Controller\S3fsImageStyleDownloadController::deliver',
-        ),
-        array(
+        [
+          '_controller' => 'Drupal\s3fs\Controller\S3fsImageStyleDownloadController::deliver',
+        ],
+        [
           '_access' => 'TRUE',
-        )
+        ]
       );
+
+      // @see \Drupal\redirect\Routing\RouteSubscriber::alterRoutes()
+      if ($this->moduleHandler->moduleExists('redirect')) {
+        $routes['s3fs.image_styles']->setDefault('_disable_route_normalizer', TRUE);
+      }
     }
 
     return $routes;
