@@ -318,9 +318,7 @@ class S3fsService implements S3fsServiceInterface {
     }
     // Create an iterator that will emit all of the objects matching the
     // key prefix.
-    $versions = $s3->ListObjectVersions($iterator_args);
-    $v = $versions->get('Versions');
-    $iterator = new ArrayIterator($v);
+    $iterator = $s3->getIterator('ListObjectVersions', $iterator_args);
 
     // The $folders array is an associative array keyed by folder paths, which
     // is constructed as each filename is written to the DB. After all the files
@@ -402,9 +400,13 @@ class S3fsService implements S3fsServiceInterface {
       }
     }
 
-    // The event listener doesn't fire after the last page is done, so we have
-    // to write the last page of metadata manually.
-    $this->writeTemporaryMetadata($file_metadata_list, $folders);
+    // Splits the data into manageable parts for the database.
+    $chunks = array_chunk($file_metadata_list,  '10000');
+    foreach ($chunks as $chunk) {
+      // The event listener doesn't fire after the last page is done, so we have
+      // to write the last page of metadata manually.
+      $this->writeTemporaryMetadata($chunk, $folders);
+    }
 
     // Now that the $folders array contains all the ancestors of every file in
     // the cache, as well as the existing folders from before the refresh,
