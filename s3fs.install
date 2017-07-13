@@ -160,3 +160,13 @@ function s3fs_install() {
       break;
   }
 }
+
+/**
+ * Set new config property "redirect_styles_ttl" to default value.
+ */
+function s3fs_update_8301() {
+  \Drupal::configFactory()
+    ->getEditable('s3fs.settings')
+    ->set('redirect_styles_ttl', 0)
+    ->save();
+}
