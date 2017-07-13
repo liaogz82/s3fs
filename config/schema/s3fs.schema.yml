@@ -43,6 +43,9 @@ s3fs.settings:
     ignore_cache:
       type: boolean
       label: 'Ignore the file metadata cache'
+    redirect_styles_ttl:
+      type: integer
+      label: 'The TTL of the redirect cache to the s3 styles'
     no_rewrite_cssjs:
       type: boolean
       label: 'Do not rewrite CSS/JS file paths'

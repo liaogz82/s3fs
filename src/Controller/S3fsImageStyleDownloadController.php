@@ -122,7 +122,17 @@ class S3fsImageStyleDownloadController extends ImageStyleDownloadController {
     if ($success) {
       // Perform a 302 Redirect to the new image derivative in S3.
       // It must be TrustedRedirectResponse for external redirects.
-      return new TrustedRedirectResponse(file_create_url($derivative_uri));
+      $response = new TrustedRedirectResponse(file_create_url($derivative_uri));
+      $cacheableMetadata = $response->getCacheableMetadata();
+      $cacheableMetadata->addCacheContexts(
+        [
+          'url.query_args:file',
+          'url.query_args:itok',
+        ]
+      );
+      $cacheableMetadata->setCacheMaxAge((int)$this->config('s3fs.settings')->get('redirect_styles_ttl'));
+      $response->addCacheableDependency($cacheableMetadata);
+      return $response;
     }
     else {
       $this->logger->notice('Unable to generate the derived image located at %path.', ['%path' => $derivative_uri]);

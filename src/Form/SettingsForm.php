@@ -238,6 +238,12 @@ class SettingsForm extends ConfigFormBase {
       <b>This causes s3fs to work extremely slowly, and should never be enabled on a production site.</b>"
       ),
     ];
+    $advanced['redirect_styles_ttl'] = [
+        '#type' => 'textfield',
+        '#title' => $this->t('The TTL of the redirect cache to the s3 styles'),
+        '#default_value' => $config->get('redirect_styles_ttl'),
+        '#description' => $this->t('Styles will be redirected to S3 and Dynamic Page Cache module will cache the response for the specified TTL.'),
+    ];
     $advanced['use_s3_for_public'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use S3 for public:// files'),
@@ -417,6 +423,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('encryption', $values['encryption'])
       ->set('use_https', $values['use_https'])
       ->set('ignore_cache', $values['ignore_cache'])
+      ->set('redirect_styles_ttl', $values['redirect_styles_ttl'])
       ->set('no_rewrite_cssjs', $values['no_rewrite_cssjs'])
       ->set('root_folder', trim($values['root_folder'], '\/'))
       ->set('public_folder', trim($values['public_folder'], '\/'))
