@@ -221,7 +221,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     }
 
     // Convert the presigned URLs string to an associative array like
-    // array(blob => timeout).
+    // [blob => timeout].
     if (!empty($this->config['presigned_urls'])) {
       foreach (explode(PHP_EOL, $this->config['presigned_urls']) as $line) {
         $blob = trim($line);
@@ -373,7 +373,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     if ($path_parts[0] == 'styles' && substr($s3_key, -4) != '.css') {
       if (!$this->getS3fsObject($this->uri)) {
         // The style delivery path looks like: s3/files/styles/thumbnail/...
-        // And $path_parts looks like array('styles', 'thumbnail', ...),
+        // And $path_parts looks like ['styles', 'thumbnail', ...],
         // so just prepend s3/files/.
         array_unshift($path_parts, 's3', 'files');
         $path = implode('/', $path_parts);

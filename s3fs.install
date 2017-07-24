@@ -119,7 +119,7 @@ function s3fs_schema() {
     'indexes' => [
       'timestamp' => ['timestamp'],
     ],
-    //'primary key' => array('uri'),
+    //'primary key' => ['uri'],
     // As mentioned on http://drupal.org/node/2193059, a bug in Drupal core's
     // MySQL driver prevents this setting from actually being applied. So we
     // manually fix that in hook_install().
