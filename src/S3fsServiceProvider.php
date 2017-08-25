@@ -44,14 +44,14 @@ class S3fsServiceProvider extends ServiceProviderBase {
    *
    * @param ContainerBuilder $container
    *   The ContainerBuilder whose service definitions can be checked.
-   *
-   * @todo check if advagg service exists
    */
   public function register(ContainerBuilder $container) {
-    $container
-      ->register('s3fs.advagg.css_subscriber', 'Drupal\s3fs\EventSubscriber\S3fsAdvAggSubscriber')
-      ->addTag('event_subscriber')
-      ->setArguments([new Reference('asset.css.optimizer')]);
+    if ($container->hasDefinition('advagg.optimizer.css')) {
+      $container
+        ->register('s3fs.advagg.css_subscriber', 'Drupal\s3fs\EventSubscriber\S3fsAdvAggSubscriber')
+        ->addTag('event_subscriber')
+        ->setArguments([new Reference('asset.css.optimizer')]);
+    }
   }
 
 }
