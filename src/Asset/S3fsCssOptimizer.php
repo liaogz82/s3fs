@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\s3fs;
+namespace Drupal\s3fs\Asset;
 
 use Drupal\Core\Asset\CssOptimizer;
 

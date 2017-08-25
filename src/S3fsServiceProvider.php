@@ -28,7 +28,7 @@ class S3fsServiceProvider implements ServiceModifierInterface {
 
       // Fix CSS static urls
       $container->getDefinition('asset.css.optimizer')
-        ->setClass('Drupal\s3fs\S3fsCssOptimizer');
+        ->setClass('Drupal\s3fs\Asset\S3fsCssOptimizer');
     }
 
     if (Settings::get('s3fs.use_s3_for_private') && $container->hasDefinition('stream_wrapper.private')) {
