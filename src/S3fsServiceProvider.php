@@ -3,8 +3,9 @@
 namespace Drupal\s3fs;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\DependencyInjection\ServiceModifierInterface;
+use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use Drupal\Core\Site\Settings;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * The stream wrapper class.
@@ -12,7 +13,7 @@ use Drupal\Core\Site\Settings;
  * In the docs for this class, anywhere you see "<scheme>", it can mean either
  * "s3" or "public", depending on which stream is currently being serviced.
  */
-class S3fsServiceProvider implements ServiceModifierInterface {
+class S3fsServiceProvider extends ServiceProviderBase {
 
   /**
    * Modifies existing service definitions.
@@ -36,6 +37,21 @@ class S3fsServiceProvider implements ServiceModifierInterface {
       $container->getDefinition('stream_wrapper.private')
         ->setClass('Drupal\s3fs\StreamWrapper\PrivateS3fsStream');
     }
+  }
+
+  /**
+   * Register dynamic service definitions.
+   *
+   * @param ContainerBuilder $container
+   *   The ContainerBuilder whose service definitions can be checked.
+   *
+   * @todo check if advagg service exists
+   */
+  public function register(ContainerBuilder $container) {
+    $container
+      ->register('s3fs.advagg.css_subscriber', 'Drupal\s3fs\EventSubscriber\S3fsAdvAggSubscriber')
+      ->addTag('event_subscriber')
+      ->setArguments([new Reference('asset.css.optimizer')]);
   }
 
 }

@@ -10,9 +10,3 @@ services:
     class: Drupal\s3fs\PathProcessor\S3fsPathProcessorImageStyles
     tags:
       - { name: path_processor_inbound, priority: 310 }
-  # @todo move to serviceProvider and only add if advagg is enabled.
-  s3fs.advagg.css_subscriber:
-    class: Drupal\s3fs\EventSubscriber\S3fsAdvAggSubscriber
-    tags:
-      - { name: event_subscriber }
-    arguments: [ '@asset.css.optimizer' ]
