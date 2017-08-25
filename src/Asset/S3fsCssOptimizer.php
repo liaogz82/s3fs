@@ -19,9 +19,12 @@ class S3fsCssOptimizer extends CssOptimizer {
    * @return string
    *   The file path.
    */
-  public function rewriteFileURI($matches) {
+  public function rewriteFileURI($matches, $base_path = NULL) {
     // Prefix with base and remove '../' segments where possible.
-    $path = $this->rewriteFileURIBasePath . $matches[1];
+    $path = $base_path
+      ? $base_path . $matches[1]
+      : $this->rewriteFileURIBasePath . $matches[1];
+
     $last = '';
     while ($path != $last) {
       $last = $path;

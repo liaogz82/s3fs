@@ -3,7 +3,7 @@
 namespace Drupal\s3fs\EventSubscriber;
 
 use Drupal\advagg\Asset\AssetOptimizationEvent;
-use Drupal\advagg\Asset\SingleAssetOptimizerBase;
+use Drupal\s3fs\Asset\S3fsCssOptimizer;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -12,22 +12,22 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class S3fsAdvAggSubscriber implements EventSubscriberInterface {
 
   /**
-   * The minifier.
+   * The optimizer.
    *
-   * @var \Drupal\advagg\Asset\SingleAssetOptimizerBase
+   * @var \Drupal\s3fs\Asset\S3fsCssOptimizer
    */
-  protected $minifier;
+  protected $cssOptimizer;
 
   private $rewriteFileURIBasePath;
 
   /**
    * Construct the optimizer instance.
    *
-   * @param \Drupal\advagg\Asset\SingleAssetOptimizerBase $minifier
-   *   The minifier.
+   * @param \Drupal\s3fs\Asset\S3fsCssOptimizer $css_optimizer
+   *   The optimizer.
    */
-  public function __construct(SingleAssetOptimizerBase $minifier) {
-    $this->minifier = $minifier;
+  public function __construct(S3fsCssOptimizer $css_optimizer) {
+    $this->cssOptimizer = $css_optimizer;
   }
 
   /**
@@ -70,16 +70,18 @@ class S3fsAdvAggSubscriber implements EventSubscriberInterface {
     return preg_replace_callback('/url\(\s*[\'"]?(?![a-z]+:|\/+)([^\'")]+)[\'"]?\s*\)/i', [$this, 'rewriteFileURI'], $content);
   }
 
-  // @todo Use S3fsCssOptimizer
+  /**
+   * Return absolute urls to access static files that they aren't in S3 bucket.
+   *
+   * @param array $matches
+   *   An array of matches by a preg_replace_callback() call that scans for
+   *   url() references in CSS files, except for external or absolute ones.
+   *
+   * @return string
+   *   The file path.
+   */
   public function rewriteFileURI($matches) {
-    // Prefix with base and remove '../' segments where possible.
-    $path = $this->rewriteFileURIBasePath . $matches[1];
-    $last = '';
-    while ($path != $last) {
-      $last = $path;
-      $path = preg_replace('`(^|/)(?!\.\./)([^/]+)/\.\./`', '$1', $path);
-    }
-    return 'url(' . file_create_url($path) . ')';
+    return $this->cssOptimizer->rewriteFileURI($matches, $this->rewriteFileURIBasePath);
   }
 
 }
