@@ -46,7 +46,7 @@ class S3fsServiceProvider extends ServiceProviderBase {
    *   The ContainerBuilder whose service definitions can be checked.
    */
   public function register(ContainerBuilder $container) {
-    if ($container->hasDefinition('advagg.optimizer.css')) {
+    if ($container->hasDefinition('advagg.optimizer.css') && Settings::get('s3fs.use_s3_for_public')) {
       $container
         ->register('s3fs.advagg.css_subscriber', 'Drupal\s3fs\EventSubscriber\S3fsAdvAggSubscriber')
         ->addTag('event_subscriber')
