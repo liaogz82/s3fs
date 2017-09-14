@@ -24,6 +24,25 @@ class ActionsForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
+    $form['validate_configuration'] = [
+      '#type' => 'fieldset',
+      '#description' => $this->t(
+        "To validate current S3fs configuration include configuration inside settings.php file."
+      ),
+      '#title' => $this->t('Validate configuration'),
+    ];
+
+    $form['validate_configuration']['validate'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Validate'),
+      '#validate' => [
+        [$this, 'validateConfigValidateForm'],
+      ],
+      '#submit' => [
+        [$this, 'validateConfigSubmitForm'],
+      ],
+    ];
+
     $form['refresh_cache'] = [
       '#type' => 'fieldset',
       '#description' => $this->t(
@@ -104,6 +123,36 @@ class ActionsForm extends FormBase {
     }
 
     return $form;
+  }
+
+  /**
+   * Validate current configuration.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function validateConfigValidateForm(array &$form, FormStateInterface $form_state) {
+    $config = \Drupal::config('s3fs.settings')->get();
+    if (!\Drupal::service('s3fs')->validate($config)) {
+      $form_state->setError(
+        $form,
+        $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page or settings.php and try again.')
+      );
+    }
+  }
+
+  /**
+   * Success message if configuration is correct.
+   *
+   * @param array $form
+   *   Array that contains the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function validateConfigSubmitForm(array &$form, FormStateInterface $form_state) {
+    drupal_set_message('Your configuration works properly');
   }
 
   /**

@@ -162,14 +162,6 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->config[$prop] = $value;
     }
 
-    if (!$this->s3fs->validate($this->config)) {
-      $message = $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.');
-      if (\Drupal::service('router.admin_context')->isAdminRoute()) {
-        return drupal_set_message($message, LogLevel::ERROR);
-      }
-      throw new S3fsException($message);
-    }
-
     $this->s3 = $this->getClient();
 
     $this->register($this->s3);
