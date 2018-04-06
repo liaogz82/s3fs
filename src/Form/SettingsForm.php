@@ -54,6 +54,7 @@ class SettingsForm extends ConfigFormBase {
       'ap-northeast-2' => 'Asia Pacific - Seoul (ap-northeast-2)',
       'sa-east-1' => 'South America - Sao Paulo (sa-east-1)',
       'cn-north-1' => 'China - Beijing (cn-north-1)',
+      'ca-central-1' => 'Canada - Montreal (ca-central-1)'
     ];
 
     $form['credentials'] = [
