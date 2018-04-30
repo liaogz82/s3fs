@@ -207,11 +207,11 @@ class ActionsForm extends FormBase {
       );
     }
 
-    $local_normal_wrappers = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::LOCAL_NORMAL);
+    $normal_wrappers = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::NORMAL);
     $triggering_element = $form_state->getTriggeringElement();
     $destination_scheme = $triggering_element['#name'];
 
-    if (!empty($local_normal_wrappers[$destination_scheme])) {
+    if (!empty($normal_wrappers[$destination_scheme])) {
       if ($destination_scheme == 'private' && !Settings::get('file_private_path')) {
         $form_state->setError(
           $form,
