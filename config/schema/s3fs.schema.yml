@@ -10,9 +10,9 @@ s3fs.settings:
     use_instance_profile:
       type: boolean
       label: 'Use EC2 Instance Profile Credentials'
-    default_cache_config:
+    credentials_file:
       type: string
-      label: 'Default Cache Location'
+      label: 'Custom Credentials File Location'
     bucket:
       type: string
       label: 'S3 Bucket Name'

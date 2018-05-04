@@ -101,11 +101,11 @@ class SettingsForm extends ConfigFormBase {
       ],
     ];
 
-    $form['credentials']['default_cache_config'] = [
+    $form['credentials']['credentials_file'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Default Cache Location'),
-      '#default_value' => $config->get('default_cache_config'),
-      '#description' => $this->t('The default cache location for your EC2 Instance Profile Credentials.'),
+      '#title' => $this->t('Custom Credentials File Location'),
+      '#default_value' => $config->get('credentials_file'),
+      '#description' => $this->t('The custom profile or ini file location. This will use the ini provider instead.'),
       '#states' => [
         'visible' => [
           ':input[id=edit-use-instance-profile]' => ['checked' => TRUE],
@@ -412,7 +412,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('access_key', $values['access_key'])
       ->set('secret_key', $values['secret_key'])
       ->set('use_instance_profile', $values['use_instance_profile'])
-      ->set('default_cache_config', $values['default_cache_config'])
+      ->set('credentials_file', $values['credentials_file'])
       ->set('bucket', $values['bucket'])
       ->set('region', $values['region'])
       ->set('use_cname', $values['use_cname'])

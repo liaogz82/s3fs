@@ -3,6 +3,7 @@
 namespace Drupal\s3fs;
 
 use ArrayIterator;
+use Aws\Credentials\CredentialProvider;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Drupal\Core\Cache\Cache;
@@ -78,17 +79,6 @@ class S3fsService implements S3fsServiceInterface {
           $this->t("Your AWS credentials have not been properly configured.
           Please set them on the S3 File System admin/config/media/s3fs page or
           set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."),
-        ];
-      }
-      return FALSE;
-    }
-    elseif ($config['use_instance_profile'] && empty($config['default_cache_config'])) {
-      if ($returnError) {
-        return [
-          'default_cache_config',
-          $this->t("Your AWS credentials have not been properly configured.
-          You are attempting to use instance profile credentials but you have not set a default cache location.
-          Please set it on the admin/config/media/s3fs page or set \$config['s3fs.settings']['cache_config'] in settings.php."),
         ];
       }
       return FALSE;
@@ -174,10 +164,23 @@ class S3fsService implements S3fsServiceInterface {
     // If the client hasn't been set up yet, or the config given to this call is
     // different from the previous call, (re)build the client.
     if (!isset($s3) || $static_config != $config) {
-
-      // Create the Aws\S3\S3Client object.
+      $client_config = [];
+      // If we have configured credentials locally use them, otherwise let the SDK
+      // find them per API docs.
+      // https://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/configuration.html#id3
       if (!empty($config['use_instance_profile'])) {
-        $client_config = ['default_cache_config' => $config['default_cache_config']];
+        // If defined path use that otherwise SDK will check home directory.
+        if (!empty($config['credentials_file'])) {
+          $provider = CredentialProvider::ini(NULL, $config['credentials_file']);
+        }
+        else {
+          // Assume an instance profile provider if no path.
+          $provider = CredentialProvider::instanceProfile();
+        }
+        // Cache the results in a memoize function to avoid loading and parsing
+        // the ini file on every API operation.
+        $provider = CredentialProvider::memoize($provider);
+        $client_config['credentials'] = $provider;
       }
       else {
         $client_config['credentials'] = [
@@ -195,6 +198,7 @@ class S3fsService implements S3fsServiceInterface {
         $client_config['endpoint'] = ($config['use_https'] ? 'https://' : 'http://') . $config['hostname'];
       }
       $client_config['version'] = S3fsStream::API_VERSION;
+      // Create the Aws\S3\S3Client object.
       $s3 = new S3Client($client_config);
       $static_config = $config;
     }

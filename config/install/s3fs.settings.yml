@@ -1,7 +1,7 @@
 access_key: ''
 secret_key: ''
 use_instance_profile: false
-default_cache_config: ''
+credentials_file: ''
 bucket: ''
 region: us-east-1
 use_cname: false
