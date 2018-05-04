@@ -123,11 +123,16 @@ class S3fsService implements S3fsServiceInterface {
       return FALSE;
     }
 
-    // Test the connection to S3, and the bucket name.
+    // Test the connection to S3, bucket name and WRITE|READ ACL permissions.
     try {
-      // listObjects() will trigger descriptive exceptions if the credentials,
+      // These actions will trigger descriptive exceptions if the credentials,
       // bucket name, or region are invalid/mismatched.
-      $s3->listObjects(['Bucket' => $config['bucket'], 'MaxKeys' => 1]);
+      $date = date('dmy-Hi');
+      $key = "s3fs-tests-results/write-test-{$date}.txt";
+      $s3->putObject(['Body' => 'Example file uploaded successfully.', 'Bucket' => $config['bucket'], 'Key' => $key]);
+      if ($object = $s3->getObject(['Bucket' => $config['bucket'], 'Key' => $key])) {
+        $s3->deleteObject(['Bucket' => $config['bucket'], 'Key' => $key]);
+      }
     }
     catch (S3Exception $e) {
       if ($returnError) {
