@@ -2,7 +2,6 @@
 
 namespace Drupal\s3fs;
 
-use ArrayIterator;
 use Aws\Credentials\CredentialProvider;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
@@ -10,6 +9,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Database\SchemaObjectExistsException;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\StreamWrapper\PublicStream;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -72,13 +72,13 @@ class S3fsService implements S3fsServiceInterface {
       }
       return FALSE;
     }
-    elseif (!$config['use_instance_profile'] && (!$config['secret_key'] || !$config['access_key'])) {
+    elseif (!$config['use_instance_profile'] && (!Settings::get('s3fs.access_key') || !Settings::get('s3fs.secret_key'))) {
       if ($returnError) {
         return [
           'form',
           $this->t("Your AWS credentials have not been properly configured.
           Please set them on the S3 File System admin/config/media/s3fs page or
-          set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in settings.php."),
+          set \$settings['s3fs.access_key'] and \$settings['s3fs.secret_key'] in settings.php."),
         ];
       }
       return FALSE;
@@ -188,9 +188,19 @@ class S3fsService implements S3fsServiceInterface {
         $client_config['credentials'] = $provider;
       }
       else {
+        $access_key = Settings::get('s3fs.access_key', '');
+        // @todo Remove $config['access_key'] and $config['secret_key'] in 8.x-3.0-beta1
+        if (!$access_key && !empty($config['access_key'])) {
+          $access_key = $config['access_key'];
+        }
+        $secret_key = Settings::get('s3fs.secret_key', '');
+        // @todo Remove $config['access_key'] and $config['secret_key'] in 8.x-3.0-beta1
+        if (!$secret_key && !empty($config['secret_key'])) {
+          $secret_key = $config['secret_key'];
+        }
         $client_config['credentials'] = [
-          'key' => $config['access_key'],
-          'secret' => $config['secret_key'],
+          'key' => $access_key,
+          'secret' => $secret_key,
         ];
       }
       if (!empty($config['region'])) {

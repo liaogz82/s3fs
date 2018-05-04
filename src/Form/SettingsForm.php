@@ -62,8 +62,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Amazon Web Services Credentials'),
       '#description' => $this->t(
         "To configure your Amazon Web Services credentials, enter the values in the appropriate fields below.
-        You may instead set \$config['s3fs.settings']['access_key'] and \$config['s3fs.settings']['secret_key'] in your site's settings.php file.
-        Values set in settings.php will override the values in these fields."
+        To set access and secret key you must use \$settings['s3fs.access_key'] and \$settings['s3fs.secret_key'] in your site's settings.php file."
       ),
       '#collapsible' => TRUE,
       '#collapsed' => $config->get('use_instance_profile'),
@@ -83,6 +82,10 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Amazon Web Services Access Key'),
       '#default_value' => $config->get('access_key'),
+      '#description' => $this->t(
+        "<b>Important:</b> this field will be removed in 8.x-3.0-beta1, move this configuration to \$settings['s3fs.access_key'] in your site's settings.php file."
+      ),
+      '#disabled' => TRUE,
       '#states' => [
         'visible' => [
           ':input[id=edit-use-instance-profile]' => ['checked' => FALSE],
@@ -94,6 +97,10 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Amazon Web Services Secret Key'),
       '#default_value' => $config->get('secret_key'),
+      '#description' => $this->t(
+        "<b>Important:</b> this field will be removed in 8.x-3.0-beta1, move this configuration to \$settings['s3fs.secret_key'] in your site's settings.php file."
+      ),
+      '#disabled' => TRUE,
       '#states' => [
         'visible' => [
           ':input[id=edit-use-instance-profile]' => ['checked' => FALSE],
@@ -409,8 +416,6 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValues();
     $this->config('s3fs.settings')
-      ->set('access_key', $values['access_key'])
-      ->set('secret_key', $values['secret_key'])
       ->set('use_instance_profile', $values['use_instance_profile'])
       ->set('credentials_file', $values['credentials_file'])
       ->set('bucket', $values['bucket'])

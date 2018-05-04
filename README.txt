@@ -28,8 +28,8 @@ INSTALLATION
     your Amazon Web Services credentials. To do so, store them in the $config
     array in your site's settings.php file (sites/default/settings.php), like
     so:
-    $config['s3fs.settings']['access_key'] = 'YOUR ACCESS KEY';
-    $config['s3fs.settings']['secret_key'] = 'YOUR SECRET KEY';
+    $settings['s3fs.access_key'] = 'YOUR ACCESS KEY';
+    $settings['s3fs.secret_key'] = 'YOUR SECRET KEY';
 
   * Configure your settings for S3 File System (including your S3 bucket name)
     at /admin/config/media/s3fs. You can input your AWS credentials on this

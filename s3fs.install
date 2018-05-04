@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
 
 /**
@@ -22,14 +23,36 @@ function s3fs_requirements($phase) {
     }
   }
   if ($phase == 'runtime') {
-    $s3fs_config = \Drupal::config('s3fs.settings');
-    $access_key = $s3fs_config->get('access_key');
-    $secret_key = $s3fs_config->get('secret_key');
-    if (!($access_key && $secret_key)) {
+    $config = \Drupal::config('s3fs.settings');
+    $use_instance_profile = $config->get('use_instance_profile');
+    $access_key = Settings::get('s3fs.access_key');
+    $secret_key = Settings::get('s3fs.secret_key');
+
+    if (
+          ($config->get('access_key') && !$access_key)
+      ||  ($config->get('secret_key') && !$secret_key)
+    ) {
+      $requirements['s3fs_keys'] = [
+        'title' => t('S3 File System access and secret keys'),
+        'severity' => REQUIREMENT_WARNING,
+        'description' => t('Access and secret key now must be in settings.php. Please copy your values from <a href=":settings">S3 File System module settings page</a> or $config (in settings.php) and set it up in $settings array in your settings.php before 8.x-3.0-beta1.', [
+          ':settings' => Url::fromRoute('s3fs.admin_settings')->toString(),
+        ]),
+      ];
+    }
+
+    if (
+          !$use_instance_profile
+      &&  (
+              (!$access_key && !$secret_key)
+          ||  (!$access_key && $secret_key)
+          ||  ($access_key && !$secret_key)
+      )
+    ) {
       $requirements['s3fs'] = [
         'title' => t('S3 File System'),
-        'severity' => REQUIREMENT_ERROR,
-        'description' => t('S3 File System access key or secret key is not set and it is required for some functionalities to work. Please set it up at the <a href=":settings">S3 File System module settings page</a>.', [
+        'severity' => REQUIREMENT_WARNING,
+        'description' => t('S3 File System has miss configuration. Please set it up at the <a href=":settings">S3 File System module settings page</a> or in your settings.php file.', [
           ':settings' => Url::fromRoute('s3fs.admin_settings')->toString(),
         ]),
       ];
