@@ -251,10 +251,6 @@ class S3fsService implements S3fsServiceInterface {
       return;
     }
 
-    if (!empty($config['root_folder'])) {
-      $target_folder = "{$config['root_folder']}/$target_folder";
-    }
-
     $file_paths = $this->dirScan($source_folder);
     foreach ($file_paths as $path) {
       $relative_path = $target_folder . str_replace($source_folder . '/', '', $path);
