@@ -129,6 +129,9 @@ class S3fsService implements S3fsServiceInterface {
       // bucket name, or region are invalid/mismatched.
       $date = date('dmy-Hi');
       $key = "s3fs-tests-results/write-test-{$date}.txt";
+      if (!empty($config['root_folder'])) {
+        $key = "{$config['root_folder']}/$key";
+      }
       $s3->putObject(['Body' => 'Example file uploaded successfully.', 'Bucket' => $config['bucket'], 'Key' => $key]);
       if ($object = $s3->getObject(['Bucket' => $config['bucket'], 'Key' => $key])) {
         $s3->deleteObject(['Bucket' => $config['bucket'], 'Key' => $key]);
