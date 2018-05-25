@@ -12,12 +12,11 @@ interface S3fsServiceInterface {
    *
    * @param $config
    *   Array of configuration settings from which to configure the client.
-   * @param $returnError
-   *   Boolean, False by default.
    *
-   * @return Boolean/array
+   * @return array
+   *   Empty array if configuration is valid, errors array otherwise.
    */
-  function validate(array $config, $returnError = FALSE);
+  function validate(array $config);
 
   /**
    * Sets up the S3Client object.

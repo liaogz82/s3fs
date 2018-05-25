@@ -44,7 +44,10 @@ function s3fs_drush_command() {
 function drush_s3fs_refresh_cache() {
   $config = \Drupal::config('s3fs.settings')->get();
 
-  if (!\Drupal::service('s3fs')->validate($config)) {
+  if ($errors = \Drupal::service('s3fs')->validate($config)) {
+    foreach ($errors as $error) {
+      drush_set_error($error);
+    }
     return drush_set_error(
       dt('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
     );
@@ -73,7 +76,10 @@ function drush_s3fs_copy_local($scheme = 'all') {
 
   $config = \Drupal::config('s3fs.settings')->get();
 
-  if (!\Drupal::service('s3fs')->validate($config)) {
+  if ($errors = \Drupal::service('s3fs')->validate($config)) {
+    foreach ($errors as $error) {
+      drush_set_error($error);
+    }
     return drush_set_error(
       dt('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
     );

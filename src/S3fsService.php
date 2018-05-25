@@ -51,76 +51,34 @@ class S3fsService implements S3fsServiceInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * Validate the S3fs config.
-   *
-   * @param array $config
-   *   Array of configuration settings from which to configure the client.
-   * @param bool $returnError
-   *   Boolean, False by default.
-   *
-   * @return bool|array
-   *   Returns a boolean value or an array.
    */
-  public function validate(array $config, $returnError = FALSE) {
+  public function validate(array $config) {
+    $errors = [];
     if (!class_exists('Aws\S3\S3Client')) {
-      if ($returnError) {
-        return [
-          'form',
-          $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.'),
-        ];
-      }
-      return FALSE;
+      $errors[] = $this->t('Cannot load Aws\S3\S3Client class. Please ensure that the aws sdk php library is installed correctly.');
     }
     elseif (!$config['use_instance_profile'] && (!Settings::get('s3fs.access_key') || !Settings::get('s3fs.secret_key'))) {
-      if ($returnError) {
-        return [
-          'form',
-          $this->t("Your AWS credentials have not been properly configured.
-          Please set them on the S3 File System admin/config/media/s3fs page or
-          set \$settings['s3fs.access_key'] and \$settings['s3fs.secret_key'] in settings.php."),
-        ];
-      }
-      return FALSE;
+      $errors[] = $this->t("Your AWS credentials have not been properly configured.
+        Please set them on the S3 File System admin/config/media/s3fs page or
+        set \$settings['s3fs.access_key'] and \$settings['s3fs.secret_key'] in settings.php.");
     }
 
     if (empty($config['bucket'])) {
-      if ($returnError) {
-        return [
-          'bucket',
-          $this->t('Your AmazonS3 bucket name is not configured.'),
-        ];
-      }
-      return FALSE;
+      $errors[] = $this->t('Your AmazonS3 bucket name is not configured.');
     }
 
     if (!empty($config['use_customhost']) && empty($config['hostname'])) {
-      if ($returnError) {
-        $name = 'hostname';
-        $msg = $this->t('You must specify a Hostname to use the Custom Host feature.');
-        return [$name, $msg];
-      }
-      return FALSE;
+      $errors[] = $this->t('You must specify a Hostname to use Custom Host feature.');
     }
     if (!empty($config['use_cname']) && empty($config['domain'])) {
-      if ($returnError) {
-        $name = 'domain';
-        $msg = $this->t('You must specify a CDN Domain Name to use the CNAME feature.');
-        return [$name, $msg];
-      }
-      return FALSE;
+      $errors[] = $this->t('You must specify a CDN Domain Name to use CNAME feature.');
     }
 
     try {
       $s3 = $this->getAmazonS3Client($config);
     }
     catch (S3Exception $e) {
-      if ($returnError) {
-        $name = 'form';
-        $msg = $e->getMessage();
-        return [$name, $msg];
-      }
-      return FALSE;
+      $errors[] = $e->getMessage();
     }
 
     // Test the connection to S3, bucket name and WRITE|READ ACL permissions.
@@ -138,15 +96,10 @@ class S3fsService implements S3fsServiceInterface {
       }
     }
     catch (S3Exception $e) {
-      if ($returnError) {
-        $name = 'form';
-        $msg = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
-        return [$name, $msg];
-      }
-      return FALSE;
+      $errors[] = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
     }
 
-    return TRUE;
+    return $errors;
   }
 
   /**

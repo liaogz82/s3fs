@@ -135,7 +135,10 @@ class ActionsForm extends FormBase {
    */
   public function validateConfigValidateForm(array &$form, FormStateInterface $form_state) {
     $config = \Drupal::config('s3fs.settings')->get();
-    if (!\Drupal::service('s3fs')->validate($config)) {
+    if ($errors = \Drupal::service('s3fs')->validate($config)) {
+      foreach ($errors as $error) {
+        $form_state->setError($form, $error);
+      }
       $form_state->setError(
         $form,
         $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page or settings.php and try again.')
@@ -163,15 +166,10 @@ class ActionsForm extends FormBase {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
-  public function refreshCacheValidateForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('s3fs.settings')->get();
-    if (!\Drupal::service('s3fs')->validate($config)) {
-      $form_state->setError(
-        $form,
-        $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
-      );
-    }
+  public function refreshCacheValidateForm(array &$form, FormStateInterface $form_state) {
+    $this->validateConfigValidateForm($form, $form_state);
 
+    $config = \Drupal::config('s3fs.settings')->get();
     // Use this values for submit step.
     $form_state->set('s3fs', ['config' => $config]);
   }
@@ -198,14 +196,8 @@ class ActionsForm extends FormBase {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The current state of the form.
    */
-  public function copyLocalValidateForm(array $form, FormStateInterface $form_state) {
-    $config = \Drupal::config('s3fs.settings')->get();
-    if (!\Drupal::service('s3fs')->validate($config)) {
-      $form_state->setError(
-        $form,
-        $this->t('Unable to validate your s3fs configuration settings. Please configure S3 File System from the admin/config/media/s3fs page and try again.')
-      );
-    }
+  public function copyLocalValidateForm(array &$form, FormStateInterface $form_state) {
+    $this->validateConfigValidateForm($form, $form_state);
 
     $normal_wrappers = \Drupal::service('stream_wrapper_manager')->getNames(StreamWrapperInterface::NORMAL);
     $triggering_element = $form_state->getTriggeringElement();
@@ -225,6 +217,8 @@ class ActionsForm extends FormBase {
         $this->t('Scheme @scheme is not supported.', ['@scheme' => $destination_scheme])
       );
     }
+
+    $config = \Drupal::config('s3fs.settings')->get();
 
     // Use this values for submit step.
     $form_state->set('s3fs', [

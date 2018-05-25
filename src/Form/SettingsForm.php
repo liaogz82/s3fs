@@ -124,7 +124,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('S3 Bucket Name'),
       '#default_value' => $config->get('bucket'),
-      '#required' => TRUE,
+      '#description' => $this->t("If you don't set this field, you must set bucket name in your settings.php \$config['s3fs.settings']['bucket']."),
     ];
     $form['region'] = [
       '#type' => 'select',
