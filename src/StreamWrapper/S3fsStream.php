@@ -898,8 +898,11 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
    * @see http://php.net/manual/en/streamwrapper.dir-readdir.php
    */
   public function dir_readdir() {
-    $entry = each($this->dir);
-    return $entry ? $entry['value'] : FALSE;
+    $current = current($this->dir);
+    if ($current) {
+      next($this->dir);
+    }
+    return $current;
   }
 
   /***************************************************************************
