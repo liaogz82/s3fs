@@ -9,6 +9,7 @@ use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Database\SchemaObjectExistsException;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\s3fs\StreamWrapper\S3fsStream;
@@ -18,6 +19,7 @@ use Drupal\s3fs\StreamWrapper\S3fsStream;
  */
 class S3fsService implements S3fsServiceInterface {
 
+  use MessengerTrait;
   use StringTranslationTrait;
 
   /**
@@ -320,7 +322,7 @@ class S3fsService implements S3fsServiceInterface {
     // Clear every s3fs entry in the Drupal cache.
     Cache::invalidateTags([S3FS_CACHE_TAG]);
 
-    drupal_set_message($this->t('S3 File System cache refreshed.'));
+    $this->messenger()->addStatus($this->t('S3 File System cache refreshed.'));
   }
 
   /**

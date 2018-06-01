@@ -155,7 +155,7 @@ class ActionsForm extends FormBase {
    *   The current state of the form.
    */
   public function validateConfigSubmitForm(array &$form, FormStateInterface $form_state) {
-    drupal_set_message('Your configuration works properly');
+    $this->messenger()->addStatus('Your configuration works properly');
   }
 
   /**
