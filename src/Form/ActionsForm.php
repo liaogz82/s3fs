@@ -239,7 +239,7 @@ class ActionsForm extends FormBase {
     $s3fs_storage = $form_state->get('s3fs');
     $config = $s3fs_storage['config'];
     $scheme = $s3fs_storage['scheme'];
-    \Drupal::service('s3fs')->copyFileSystemToS3($config, $scheme);
+    \Drupal::service('s3fs.file_migration_batch')->execute($config, $scheme);
   }
 
   /**

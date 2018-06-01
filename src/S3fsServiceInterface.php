@@ -32,27 +32,6 @@ interface S3fsServiceInterface {
   function getAmazonS3Client(array $config);
 
   /**
-   * Copies all the local files from the specified file system into S3.
-   *
-   * @param array $config
-   *   An s3fs configuration array.
-   * @param $scheme
-   *   A variable defining which scheme (Public or Private) to copy.
-   */
-  function copyFileSystemToS3(array $config, $scheme);
-
-  /**
-   * Scans a given directory.
-   *
-   * @param $dir
-   *   The directory to be scanned.
-   *
-   * @return array
-   *   Array of file paths.
-   */
-  function dirScan($dir);
-
-  /**
    * Refreshes the metadata cache.
    *
    * Iterates over the full list of objects in the s3fs_root_folder within S3

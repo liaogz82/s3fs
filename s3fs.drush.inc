@@ -87,13 +87,13 @@ function drush_s3fs_copy_local($scheme = 'all') {
 
   if ($scheme == 'all' || $scheme == 'public') {
     drush_log(dt('Starting @scheme scheme', ['@scheme' => 'public']), LogLevel::OK);
-    \Drupal::service('s3fs')->copyFileSystemToS3($config, 'public');
+    \Drupal::service('s3fs.file_migration_batch')->execute($config, 'public');
   }
 
   if ($scheme == 'all' || $scheme == 'private') {
     if (Settings::get('file_private_path')) {
       drush_log(dt('Starting @scheme scheme', ['@scheme' => 'private']), LogLevel::OK);
-      \Drupal::service('s3fs')->copyFileSystemToS3($config, 'private');
+      \Drupal::service('s3fs.file_migration_batch')->execute($config, 'private');
     }
     else {
       drush_log(dt('Scheme @scheme is not properly configured, you must enable this scheme in your settings.php',

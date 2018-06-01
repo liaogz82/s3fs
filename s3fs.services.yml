@@ -10,3 +10,5 @@ services:
     class: Drupal\s3fs\PathProcessor\S3fsPathProcessorImageStyles
     tags:
       - { name: path_processor_inbound, priority: 310 }
+  s3fs.file_migration_batch:
+    class: Drupal\s3fs\Batch\S3fsFileMigrationBatch
