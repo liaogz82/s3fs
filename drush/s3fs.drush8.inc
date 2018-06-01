@@ -2,7 +2,13 @@
 
 /**
  * @file
- * Defines a drush command that refreshes the S3 metadata cache.
+ * Defines a Drush8 commands that refreshes the S3 metadata cache.
+ *
+ * This file is only used by Drush8. Drush9 discovers its commands via tagged
+ * service(s) in drush.services.yml. Also see classes in src/Commands.
+ *
+ * @deprecated It will removed in Drupal 8.6 because Drush8 commands are
+ *             deprecated.
  */
 
 use Drupal\Core\Site\Settings;
