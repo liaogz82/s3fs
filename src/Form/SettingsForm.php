@@ -39,22 +39,25 @@ class SettingsForm extends ConfigFormBase {
     // I'd like to be able to pull this information directly from the SDK, but
     // I couldn't find a good way to get the human-readable region names.
     $region_map = [
-      'us-east-1' => 'US East - Northern Virginia (us-east-1)',
-      'us-east-2' => 'US East - Ohio (us-east-2)',
-      'us-west-1' => 'US West - Northern California  (us-west-1)',
-      'us-west-2' => 'US West - Oregon (us-west-2)',
-      'us-gov-west-1' => 'USA GovCloud Standard (us-gov-west-1)',
-      'eu-west-1' => 'EU - Ireland  (eu-west-1)',
-      'eu-west-2' => 'EU - London (eu-west-2)',
-      'eu-central-1' => 'EU - Frankfurt (eu-central-1)',
-      'ap-south-1' => 'Asia Pacific - Mumbai',
-      'ap-southeast-1' => 'Asia Pacific - Singapore (ap-southeast-1)',
-      'ap-southeast-2' => 'Asia Pacific - Sydney (ap-southeast-2)',
-      'ap-northeast-1' => 'Asia Pacific - Tokyo (ap-northeast-1)',
-      'ap-northeast-2' => 'Asia Pacific - Seoul (ap-northeast-2)',
-      'sa-east-1' => 'South America - Sao Paulo (sa-east-1)',
-      'cn-north-1' => 'China - Beijing (cn-north-1)',
-      'ca-central-1' => 'Canada - Montreal (ca-central-1)'
+      'us-east-1' => $this->t('US East - Northern Virginia (us-east-1)'),
+      'us-east-2' => $this->t('US East - Ohio (us-east-2)'),
+      'us-west-1' => $this->t('US West - Northern California  (us-west-1)'),
+      'us-west-2' => $this->t('US West - Oregon (us-west-2)'),
+      'us-gov-west-1' => $this->t('USA GovCloud Standard (us-gov-west-1)'),
+      'eu-west-1' => $this->t('EU - Ireland  (eu-west-1)'),
+      'eu-west-2' => $this->t('EU - London (eu-west-2)'),
+      'eu-west-3' => $this->t('EU - Paris (eu-west-3)'),
+      'eu-central-1' => $this->t('EU - Frankfurt (eu-central-1)'),
+      'ap-south-1' => $this->t('Asia Pacific - Mumbai'),
+      'ap-southeast-1' => $this->t('Asia Pacific - Singapore (ap-southeast-1)'),
+      'ap-southeast-2' => $this->t('Asia Pacific - Sydney (ap-southeast-2)'),
+      'ap-northeast-1' => $this->t('Asia Pacific - Tokyo (ap-northeast-1)'),
+      'ap-northeast-2' => $this->t('Asia Pacific - Seoul (ap-northeast-2)'),
+      'ap-northeast-3' => $this->t('Asia Pacific - Osaka-Local (ap-northeast-3)'),
+      'sa-east-1' => $this->t('South America - Sao Paulo (sa-east-1)'),
+      'cn-north-1' => $this->t('China - Beijing (cn-north-1)'),
+      'cn-northwest-1' => $this->t('China - Ningxia (cn-northwest-1)'),
+      'ca-central-1' => $this->t('Canada - Central (ca-central-1)'),
     ];
 
     $form['credentials'] = [
