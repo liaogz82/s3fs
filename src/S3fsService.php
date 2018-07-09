@@ -231,8 +231,7 @@ class S3fsService implements S3fsServiceInterface {
       \Drupal::database()->schema()->createTable('s3fs_file_temp', $schema['s3fs_file']);
       // Due to http://drupal.org/node/2193059, the temp table fails to pick up
       // the primary key - fix things up manually.
-      \Drupal::database()->query("ALTER TABLE {s3fs_file_temp} CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin");
-      \Drupal::database()->query("ALTER TABLE {s3fs_file_temp} ADD PRIMARY KEY (uri)");
+      s3fs_fix_table_indexes('s3fs_file_temp');
     }
     catch (SchemaObjectExistsException $e) {
       // The table already exists, so we can simply truncate it to start fresh.
