@@ -287,16 +287,16 @@ class S3fsService implements S3fsServiceInterface {
           unset($s3_metadata['VersionId']);
         }
         $file_metadata_list[] = $this->convertMetadata($uri, $s3_metadata);
+        // Splits the data into manageable parts for the database.
+        if (count($file_metadata_list) >= 10000) {
+          $this->writeTemporaryMetadata($file_metadata_list, $folders);
+        }
       }
     }
 
-    // Splits the data into manageable parts for the database.
-    $chunks = array_chunk($file_metadata_list,  '10000');
-    foreach ($chunks as $chunk) {
-      // The event listener doesn't fire after the last page is done, so we have
-      // to write the last page of metadata manually.
-      $this->writeTemporaryMetadata($chunk, $folders);
-    }
+    // The event listener doesn't fire after the last page is done, so we have
+    // to write the last page of metadata manually.
+    $this->writeTemporaryMetadata($file_metadata_list, $folders);
 
     // Now that the $folders array contains all the ancestors of every file in
     // the cache, as well as the existing folders from before the refresh,
