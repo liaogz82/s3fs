@@ -306,6 +306,18 @@ class SettingsForm extends ConfigFormBase {
         ],
       ],
     ];
+
+    $advanced['upload_as_private'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Upload all files as private in S3'),
+      '#default_value' => Settings::get('s3fs.upload_as_private'),
+      '#disabled' => TRUE,
+      '#description' => $this->t(
+        "Enable this option to store all files as private files in S3. This is important if your AWS config only allow access to files through CNAME, because you couldn't upload files as public. To enable this feature include the following in settings.php:<br>
+        <em>\$settings['s3fs.upload_as_private'] = TRUE;</em>"
+      ),
+    ];
+
     $advanced['use_s3_for_private'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Use S3 for private:// files'),
