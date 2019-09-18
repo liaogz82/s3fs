@@ -12,7 +12,6 @@ use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\s3fs\S3fsException;
-use Psr\Log\LogLevel;
 
 /**
  * Defines a Drupal s3 (s3://) stream wrapper class.
