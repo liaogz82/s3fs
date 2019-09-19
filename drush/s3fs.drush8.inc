@@ -65,13 +65,11 @@ function drush_s3fs_refresh_cache() {
 /**
  * Copies all files from the local public/private filesystem folders into S3.
  *
- * @param string $scheme
- *   A string that contains the scheme.
- *
  * @return void|int
  *   The drush action.
  */
-function drush_s3fs_copy_local($scheme = 'all') {
+function drush_s3fs_copy_local() {
+  $scheme = drush_get_option('scheme', 'all');
   drush_log(dt('You are going to copy @scheme scheme(s).', ['@scheme' => $scheme]), LogLevel::OK);
   drush_log(dt('You should have read "Copy local files to S3" section in README.txt.'), LogLevel::WARNING);
   drush_print(dt('This command only is useful if you have or you are going to have enabled s3 for public/private in your setting.php'));
