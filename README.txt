@@ -188,6 +188,19 @@ AGGREGATED CSS AND JS IN S3
     CSS/JS files.
 
 
+IMAGE STYLES
+------------
+
+  * S3FS display image style from Amazon trough dynamic routes /s3/files/styles/
+    to fix the issues around style generated images being stored in S3.
+    (read more at https://www.drupal.org/node/2861975)
+  * If you are using Nginx as webserver, it is neccessary to add additional
+    block to your's website Nginx site configuration:
+    location ~ ^/s3/files/styles/ {
+            try_files $uri @rewrite;
+    }
+
+
 UPGRADING FROM S3 FILE SYSTEM 7.x-2.x or 7.x-3.x
 ------------------------------------------------
 
