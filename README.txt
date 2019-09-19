@@ -90,6 +90,13 @@ CONFIGURATION
     If you have a multiple backends you may use a NAS to store it or other
     shared storage system with your others backends.
 
+  * If your S3 bucket is configured to store all files as private and only
+    access files through CNAME, enable 'upload_as_private' feature. This
+    feature is incompatible with private stream wrapper.
+
+    Example:
+    $settings['s3fs.upload_as_private'] = TRUE;
+
 COPY LOCAL FILES TO S3
 ----------------------
 
