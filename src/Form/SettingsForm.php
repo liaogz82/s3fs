@@ -201,6 +201,15 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('domain'),
       '#description' => $this->t('If serving files from CloudFront, the bucket name can differ from the domain name.'),
     ];
+    $advanced['use_path_style_endpoint'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Use path-style endpoint'),
+      '#default_value' => $config->get('use_path_style_endpoint'),
+      '#description' => $this->t('Send requests to a path-style endpoint, instead of a virtual-hosted-style endpoint. For example, %path_style, insead of %virtual_hosted_style.', [
+        '%path_style' => 'http://s3.amazonaws.com/bucket',
+        '%virtual_hosted_style' => 'http://bucket.s3.amazonaws.com',
+      ]),
+    ];
     $advanced['cache_control_header'] = [
       '#type' => 'textfield',
       '#title' => $this->t('S3 Object Cache-Control Header'),
@@ -440,6 +449,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('use_customhost', $values['use_customhost'])
       ->set('hostname', $values['hostname'])
       ->set('domain', $values['domain'])
+      ->set('use_path_style_endpoint', $values['use_path_style_endpoint'])
       ->set('cache_control_header', $values['cache_control_header'])
       ->set('encryption', $values['encryption'])
       ->set('use_https', $values['use_https'])

@@ -8,6 +8,7 @@ use_cname: false
 use_customhost: false
 hostname: ''
 domain: ''
+use_path_style_endpoint: false
 cache_control_header: ''
 encryption: ''
 use_https: false

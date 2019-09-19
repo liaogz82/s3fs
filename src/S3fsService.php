@@ -186,6 +186,10 @@ class S3fsService implements S3fsServiceInterface {
       if (!empty($config['use_customhost']) && !empty($config['hostname'])) {
         $client_config['endpoint'] = ($config['use_https'] ? 'https://' : 'http://') . $config['hostname'];
       }
+      // Use path-style endpoint, if selected.
+      if (!empty($config['use_path_style_endpoint'])) {
+        $client_config['use_path_style_endpoint'] = $config['use_path_style_endpoint'];
+      }
       $client_config['version'] = S3fsStream::API_VERSION;
       // Create the Aws\S3\S3Client object.
       $s3 = new S3Client($client_config);

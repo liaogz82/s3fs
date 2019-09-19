@@ -43,6 +43,7 @@ class S3fsConfigFormTest extends WebTestBase {
     $edit['region'] = 'us-east-1';
     $edit['use_cname'] = 1;
     $edit['domain'] = 'domaincheck.com';
+    $edit['use_path_style_endpoint'] = 1;
     $edit['encryption'] = 'AES256';
     $edit['use_https'] = 1;
     $edit['root_folder'] = 'rootfoldercheck';

@@ -31,6 +31,9 @@ s3fs.settings:
     domain:
       type: string
       label: 'CDN Domain Name'
+    use_path_style_endpoint:
+      type: boolean
+      label: 'Use path-style endpoint'
     cache_control_header:
       type: string
       label: 'S3 Object Cache-Control Header'
