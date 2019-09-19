@@ -73,6 +73,9 @@ class S3fsService implements S3fsServiceInterface {
     if (!empty($config['use_cname']) && empty($config['domain'])) {
       $errors[] = $this->t('You must specify a CDN Domain Name to use CNAME feature.');
     }
+    if (Settings::get('s3fs.upload_as_private') && Settings::get('s3fs.use_s3_for_private')) {
+      $errors[] = $this->t("If you upload all files as private using public stream wrapper, you cant't use private stream wrapper because all of your files will be public through CNAME");
+    }
 
     try {
       $s3 = $this->getAmazonS3Client($config);
@@ -82,21 +85,36 @@ class S3fsService implements S3fsServiceInterface {
     }
 
     // Test the connection to S3, bucket name and WRITE|READ ACL permissions.
+    // These actions will trigger descriptive exceptions if the credentials,
+    // bucket name, or region are invalid/mismatched.
+    $date = date('dmy-Hi');
+    $key = "s3fs-tests-results/write-test-{$date}.txt";
+    if (!empty($config['root_folder'])) {
+      $key = "{$config['root_folder']}/$key";
+    }
     try {
-      // These actions will trigger descriptive exceptions if the credentials,
-      // bucket name, or region are invalid/mismatched.
-      $date = date('dmy-Hi');
-      $key = "s3fs-tests-results/write-test-{$date}.txt";
-      if (!empty($config['root_folder'])) {
-        $key = "{$config['root_folder']}/$key";
-      }
       $s3->putObject(['Body' => 'Example file uploaded successfully.', 'Bucket' => $config['bucket'], 'Key' => $key]);
       if ($object = $s3->getObject(['Bucket' => $config['bucket'], 'Key' => $key])) {
         $s3->deleteObject(['Bucket' => $config['bucket'], 'Key' => $key]);
       }
+
     }
     catch (S3Exception $e) {
       $errors[] = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
+    }
+
+    if (!Settings::get('s3fs.upload_as_private')) {
+      try {
+        $key = "s3fs-tests-results/public-write-test-{$date}.txt";
+        $s3->putObject(['Body' => 'Example public file uploaded successfully.', 'Bucket' => $config['bucket'], 'Key' => $key, 'ACL' => 'public-read']);
+        if ($object = $s3->getObject(['Bucket' => $config['bucket'], 'Key' => $key])) {
+          $s3->deleteObject(['Bucket' => $config['bucket'], 'Key' => $key]);
+        }
+      }
+      catch (S3Exception $e) {
+        $errors[] = $this->t("It couldn't upload file with public ACL, if you use S3 configuration to access all files through CNAME, enable upload_as_private in your settings.php \$settings['s3fs.upload_as_private'] = TRUE;");
+        $errors[] = $this->t('An unexpected error occurred. @message', ['@message' => $e->getMessage()]);
+      }
     }
 
     return $errors;

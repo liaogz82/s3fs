@@ -8,6 +8,7 @@ use Aws\S3\StreamWrapper;
 use Aws\S3\S3ClientInterface;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Site\Settings;
 use Drupal\Core\StreamWrapper\StreamWrapperInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
@@ -110,6 +111,13 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
   protected $presignedURLs = [];
 
   /**
+   * All files included public files will be private if this feature is enable.
+   *
+   * @var bool
+   */
+  protected $uploadAsPrivate = FALSE;
+
+  /**
    * Default map for determining file mime types.
    *
    * @var array
@@ -149,6 +157,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       $this->saveas = $settings['saveas'];
       $this->s3fs = $settings['s3fs'];
       $this->s3 = $settings['s3'];
+      $this->uploadAsPrivate = $settings['upload_as_private'];
       $this->register($this->s3);
       return;
     }
@@ -239,6 +248,8 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
       }
     }
 
+    $this->uploadAsPrivate = Settings::get('s3fs.upload_as_private');
+
     // Save all the work we just did, so that subsequent S3fsStreamWrapper
     // constructions don't have to repeat it.
     $settings['config'] = $this->config;
@@ -248,6 +259,7 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $settings['saveas'] = $this->saveas;
     $settings['s3fs'] = $this->s3fs;
     $settings['s3'] = $this->s3;
+    $settings['upload_as_private'] = $this->uploadAsPrivate;
   }
 
   /**
@@ -556,7 +568,10 @@ class S3fsStream extends StreamWrapper implements StreamWrapperInterface {
     $options[$this->protocol]['ContentType'] = \Drupal::service('file.mime_type.guesser')
       ->guess($params['Key']);
 
-    if (\Drupal::service('file_system')->uriScheme($this->uri) != 'private') {
+    if (
+          !$this->uploadAsPrivate
+      &&  \Drupal::service('file_system')->uriScheme($this->uri) !== 'private'
+    ) {
       // All non-private files uploaded to S3 must be set to public-read, or
       // users' browsers will get PermissionDenied errors, and torrent URLs
       // won't work.
