@@ -155,6 +155,9 @@ class S3fsService implements S3fsServiceInterface {
         else {
           // Assume an instance profile provider if no path.
           $provider = CredentialProvider::instanceProfile();
+          if(getenv('AWS_CONTAINER_CREDENTIALS_RELATIVE_URI')) {
+            $provider = CredentialProvider::ecsCredentials();
+          }
         }
         // Cache the results in a memoize function to avoid loading and parsing
         // the ini file on every API operation.
