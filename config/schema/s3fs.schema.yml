@@ -10,6 +10,9 @@ s3fs.settings:
     use_instance_profile:
       type: boolean
       label: 'Use EC2 Instance Profile Credentials'
+    use_ecs_profile:
+      type: boolean
+      label: 'Use ECS Task Profile Credentials'
     credentials_file:
       type: string
       label: 'Custom Credentials File Location'

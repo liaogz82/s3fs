@@ -1,6 +1,7 @@
 access_key: ''
 secret_key: ''
 use_instance_profile: false
+use_ecs_profile: false
 credentials_file: ''
 bucket: ''
 region: us-east-1

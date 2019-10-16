@@ -155,12 +155,15 @@ class S3fsService implements S3fsServiceInterface {
         else {
           // Assume an instance profile provider if no path.
           $provider = CredentialProvider::instanceProfile();
-          if(getenv('AWS_CONTAINER_CREDENTIALS_RELATIVE_URI')) {
-            $provider = CredentialProvider::ecsCredentials();
-          }
         }
         // Cache the results in a memoize function to avoid loading and parsing
         // the ini file on every API operation.
+        $provider = CredentialProvider::memoize($provider);
+        $client_config['credentials'] = $provider;
+      } elseif (!empty($config['use_ecs_profile'])) {
+        // Use a different credentials provider for fargate
+        //https://docs.aws.amazon.com/sdk-for-php/v3/developer-guide/guide_credentials_provider.html
+        $provider = CredentialProvider::ecsCredentials();
         $provider = CredentialProvider::memoize($provider);
         $client_config['credentials'] = $provider;
       }

@@ -19,6 +19,7 @@
     "license": "GPL-2.0+",
     "minimum-stability": "dev",
     "require": {
-        "aws/aws-sdk-php": "^3.18"
+        "aws/aws-sdk-php": "^3.18",
+        "phpunit/phpunit": "^8.5@dev"
     }
 }
